@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/routes/app_routes.dart';
 import '../widgets/typing_text_bubble.dart';
 import '../widgets/emotion_button.dart';
 
@@ -126,7 +128,7 @@ class HomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
                       child: EmotionButton(
                         onPressed: () {
-                          // TODO: Navigate to emotion detection when implemented
+                          context.push(AppRoutes.camera);
                         },
                       ),
                     ),

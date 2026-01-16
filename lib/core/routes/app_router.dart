@@ -6,6 +6,9 @@ import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/sign_in_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/emotion_detection/screens/camera_screen.dart';
+import '../../features/emotion_detection/screens/emotion_loading_screen.dart';
+import '../../features/chat/screens/chat_screen.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -46,20 +49,22 @@ class AppRouter {
       // Home Screen
       GoRoute(path: AppRoutes.home, name: 'home', builder: (context, state) => const HomeScreen()),
 
-      // TODO: Add more routes as screens are built
-      // Camera
-      // GoRoute(
-      //   path: AppRoutes.camera,
-      //   name: 'camera',
-      //   builder: (context, state) => const CameraScreen(),
-      // ),
+      // Camera Screen
+      GoRoute(
+        path: AppRoutes.camera,
+        name: 'camera',
+        builder: (context, state) => const CameraScreen(),
+      ),
 
-      // Chat
-      // GoRoute(
-      //   path: AppRoutes.chat,
-      //   name: 'chat',
-      //   builder: (context, state) => const ChatScreen(),
-      // ),
+      // Emotion Detection Loading Screen
+      GoRoute(
+        path: AppRoutes.emotionDetection,
+        name: 'emotionDetection',
+        builder: (context, state) => const EmotionLoadingScreen(),
+      ),
+
+      // Chat Screen
+      GoRoute(path: AppRoutes.chat, name: 'chat', builder: (context, state) => const ChatScreen()),
     ],
     errorBuilder: (context, state) =>
         Scaffold(body: Center(child: Text('Route not found: ${state.uri.path}'))),
