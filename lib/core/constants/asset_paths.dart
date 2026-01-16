@@ -6,12 +6,14 @@ class AssetPaths {
   static const String _screens = 'assets/Screens';
   static const String _auth = 'assets/Screens/Auth';
   static const String _cimo = 'assets/Screens/Cimo';
+  static const String _splash = 'assets/Screens/Splash';
   static const String _uiux = 'assets/UIUX';
-  // ignore: unused_field
-  static const String _fonts = 'assets/Fonts';
 
   // Background
   static const String mainBackground = '$_screens/main_background.png';
+
+  // App Icon / Splash
+  static const String iconBisimo = '$_splash/icon_bisimo.png';
 
   // Auth Screens
   static const String signInHeader = '$_auth/signin_header.png';

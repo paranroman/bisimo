@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
 import '../../features/splash/screens/splash_screen.dart';
+import '../../features/auth/screens/welcome_screen.dart';
+import '../../features/auth/screens/sign_in_screen.dart';
+import '../../features/auth/screens/sign_up_screen.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -18,35 +21,28 @@ class AppRouter {
         builder: (context, state) => const SplashScreen(),
       ),
 
+      // Welcome Screen
+      GoRoute(
+        path: AppRoutes.welcome,
+        name: 'welcome',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+
+      // Sign In Screen
+      GoRoute(
+        path: AppRoutes.signIn,
+        name: 'signIn',
+        builder: (context, state) => const SignInScreen(),
+      ),
+
+      // Sign Up Screen
+      GoRoute(
+        path: AppRoutes.signUp,
+        name: 'signUp',
+        builder: (context, state) => const SignUpScreen(),
+      ),
+
       // TODO: Add more routes as screens are built
-      // Onboarding
-      // GoRoute(
-      //   path: AppRoutes.onboarding,
-      //   name: 'onboarding',
-      //   builder: (context, state) => const OnboardingScreen(),
-      // ),
-
-      // Welcome
-      // GoRoute(
-      //   path: AppRoutes.welcome,
-      //   name: 'welcome',
-      //   builder: (context, state) => const WelcomeScreen(),
-      // ),
-
-      // Sign In
-      // GoRoute(
-      //   path: AppRoutes.signIn,
-      //   name: 'signIn',
-      //   builder: (context, state) => const SignInScreen(),
-      // ),
-
-      // Sign Up
-      // GoRoute(
-      //   path: AppRoutes.signUp,
-      //   name: 'signUp',
-      //   builder: (context, state) => const SignUpScreen(),
-      // ),
-
       // Home
       // GoRoute(
       //   path: AppRoutes.home,

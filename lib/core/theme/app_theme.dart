@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
+import '../constants/app_fonts.dart';
 
 /// Bisimo App Theme Configuration
 class AppTheme {
@@ -25,20 +25,21 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
         onError: AppColors.textOnPrimary,
       ),
-      fontFamily: GoogleFonts.poppins().fontFamily,
+      fontFamily: AppFonts.sfProRounded,
 
       // AppBar Theme
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: TextStyle(
+          fontFamily: AppFonts.sfProRounded,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary, size: AppSizes.iconM),
+        iconTheme: IconThemeData(color: AppColors.textPrimary, size: AppSizes.iconM),
       ),
 
       // Elevated Button Theme
@@ -53,7 +54,11 @@ class AppTheme {
           ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusM)),
           elevation: 0,
-          textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.sfProRounded,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
 
@@ -61,7 +66,11 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.sfProRounded,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
 
@@ -76,7 +85,11 @@ class AppTheme {
           ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusM)),
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.sfProRounded,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
 
@@ -108,9 +121,21 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
           borderSide: const BorderSide(color: AppColors.error, width: AppSizes.inputBorderWidth),
         ),
-        hintStyle: GoogleFonts.poppins(fontSize: 16, color: AppColors.textHint),
-        labelStyle: GoogleFonts.poppins(fontSize: 14, color: AppColors.textSecondary),
-        errorStyle: GoogleFonts.poppins(fontSize: 12, color: AppColors.error),
+        hintStyle: const TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 16,
+          color: AppColors.textHint,
+        ),
+        labelStyle: const TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 14,
+          color: AppColors.textSecondary,
+        ),
+        errorStyle: const TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 12,
+          color: AppColors.error,
+        ),
       ),
 
       // Card Theme
@@ -134,20 +159,32 @@ class AppTheme {
       ),
 
       // Bottom Navigation Bar Theme
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textHint,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
-        selectedLabelStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500),
-        unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.normal),
+        selectedLabelStyle: TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+        ),
       ),
 
       // Snackbar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
-        contentTextStyle: GoogleFonts.poppins(fontSize: 14, color: AppColors.textOnPrimary),
+        contentTextStyle: const TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 14,
+          color: AppColors.textOnPrimary,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusS)),
         behavior: SnackBarBehavior.floating,
       ),
@@ -156,12 +193,17 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusL)),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: const TextStyle(
+          fontFamily: AppFonts.sfProRounded,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        contentTextStyle: GoogleFonts.poppins(fontSize: 14, color: AppColors.textSecondary),
+        contentTextStyle: const TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 14,
+          color: AppColors.textSecondary,
+        ),
       ),
     );
   }

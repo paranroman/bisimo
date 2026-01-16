@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../shared/widgets/backgrounds/main_background.dart';
 
 /// Splash Screen - First screen shown when app launches
 class SplashScreen extends StatefulWidget {
@@ -21,77 +23,58 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToNext() async {
     // Simulate loading time
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
 
-    // TODO: Navigate to onboarding/welcome/home based on auth state
-    // For now, just stay on splash screen
-    // if (mounted) {
-    //   context.go(AppRoutes.welcome);
-    // }
+    // Navigate to welcome screen
+    if (mounted) {
+      context.go(AppRoutes.welcome);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Cimo Avatar Placeholder
-            Container(
-              width: AppSizes.cimoLarge,
-              height: AppSizes.cimoLarge,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: AppColors.shadow, blurRadius: 20, offset: const Offset(0, 10)),
-                ],
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  AssetPaths.cimoJoy,
-                  fit: BoxFit.cover,
+      body: MainBackground(
+        child: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // App Icon - icon_bisimo.png
+                Image.asset(
+                  AssetPaths.iconBisimo,
+                  width: 120,
+                  height: 120,
                   errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.emoji_emotions, size: 80, color: AppColors.primary);
+                    return Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFA726),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Icon(Icons.emoji_emotions, size: 60, color: Colors.white),
+                    );
                   },
                 ),
-              ),
-            ),
-            const SizedBox(height: AppSizes.spaceL),
+                const SizedBox(height: AppSizes.spaceL),
 
-            // App Name
-            Text(
-              AppStrings.appName,
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textOnPrimary,
-                letterSpacing: 2,
-              ),
-            ),
-            const SizedBox(height: AppSizes.spaceS),
+                // App Name - Baloo2 Bold
+                const Text('Bisimo', style: AppTextStyles.appName),
+                const SizedBox(height: AppSizes.spaceS),
 
-            // Tagline
-            Text(
-              AppStrings.appTagline,
-              style: TextStyle(fontSize: 16, color: AppColors.textOnPrimary.withValues(alpha: 0.8)),
-            ),
-            const SizedBox(height: AppSizes.spaceXXL),
-
-            // Loading Indicator
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.textOnPrimary.withValues(alpha: 0.8),
+                // Tagline - SF Pro Rounded Regular
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingXL),
+                  child: Text(
+                    'Aplikasi Bahasa Isyarat Deteksi\nEmosional untuk Anak Tunarungu',
+                    style: AppTextStyles.appTagline,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
