@@ -15,6 +15,7 @@ class AppRoutes {
   static const String home = '/home';
 
   // Emotion Detection
+  static const String emotionDetection = '/emotion-detection';
   static const String camera = '/camera';
   static const String emotionResult = '/emotion-result';
   static const String signLanguage = '/sign-language';

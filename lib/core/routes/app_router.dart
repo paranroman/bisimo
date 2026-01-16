@@ -5,6 +5,7 @@ import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/sign_in_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
+import '../../features/home/screens/home_screen.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -42,14 +43,10 @@ class AppRouter {
         builder: (context, state) => const SignUpScreen(),
       ),
 
-      // TODO: Add more routes as screens are built
-      // Home
-      // GoRoute(
-      //   path: AppRoutes.home,
-      //   name: 'home',
-      //   builder: (context, state) => const HomeScreen(),
-      // ),
+      // Home Screen
+      GoRoute(path: AppRoutes.home, name: 'home', builder: (context, state) => const HomeScreen()),
 
+      // TODO: Add more routes as screens are built
       // Camera
       // GoRoute(
       //   path: AppRoutes.camera,

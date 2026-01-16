@@ -6,11 +6,13 @@ class AssetPaths {
   static const String _screens = 'assets/Screens';
   static const String _auth = 'assets/Screens/Auth';
   static const String _cimo = 'assets/Screens/Cimo';
+  static const String _home = 'assets/Screens/Home';
   static const String _splash = 'assets/Screens/Splash';
   static const String _uiux = 'assets/UIUX';
 
   // Background
   static const String mainBackground = '$_screens/main_background.png';
+  static const String homeBackground = '$_home/home_background.png';
 
   // App Icon / Splash
   static const String iconBisimo = '$_splash/icon_bisimo.png';
