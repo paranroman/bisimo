@@ -6,6 +6,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
+import '../services/auth_service.dart';
 
 /// Sign Up Screen - User registration page
 class SignUpScreen extends StatefulWidget {
@@ -19,8 +20,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _authService = AuthService();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,10 +33,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  void _handleSignUp() {
-    // TODO: Implement sign up logic
-    // For now, navigate to home
-    context.go(AppRoutes.home);
+  void _handleSignUp() async {
+    // Validate form
+    if (_emailController.text.trim().isEmpty) {
+      _showSnackBar('Email tidak boleh kosong');
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      _showSnackBar('Password tidak boleh kosong');
+      return;
+    }
+    if (_passwordController.text.length < 6) {
+      _showSnackBar('Password minimal 6 karakter');
+      return;
+    }
+    if (_confirmPasswordController.text.isEmpty) {
+      _showSnackBar('Konfirmasi password tidak boleh kosong');
+      return;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showSnackBar('Password dan konfirmasi tidak cocok');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await _authService.signUp(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (result.isSuccess) {
+      if (mounted) {
+        _showSnackBar('Akun berhasil dibuat!');
+        // Navigate to profile data screen to fill personal information
+        context.go(AppRoutes.profileData);
+      }
+    } else {
+      _showSnackBar(result.message ?? 'Pendaftaran gagal');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontFamily: AppFonts.sfProRounded)),
+        backgroundColor: AppColors.textPrimary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
@@ -135,15 +187,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   // Daftar Button
                   Center(
-                    child: PrimaryButton(
-                      text: 'Daftar',
-                      onPressed: _handleSignUp,
-                      backgroundColor: const Color(0xFF41B37E),
-                      textColor: Colors.black,
-                      shadowColor: const Color(0xFF2D7D58),
-                      width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
-                      height: 52,
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Color(0xFF41B37E))
+                        : PrimaryButton(
+                            text: 'Daftar',
+                            onPressed: _handleSignUp,
+                            backgroundColor: const Color(0xFF41B37E),
+                            textColor: Colors.black,
+                            shadowColor: const Color(0xFF2D7D58),
+                            width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
+                            height: 52,
+                          ),
                   ),
                   const SizedBox(height: AppSizes.spaceL),
 

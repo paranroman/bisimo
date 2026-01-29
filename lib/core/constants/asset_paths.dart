@@ -13,6 +13,9 @@ class AssetPaths {
   // Background
   static const String mainBackground = '$_screens/main_background.png';
   static const String homeBackground = '$_home/home_background.png';
+  static const String navigationBackground = '$_screens/navigation-background.png';
+  static const String settingBackground = '$_screens/setting-background.png';
+  static const String profilBackground = '$_screens/profil-background.png';
 
   // App Icon / Splash
   static const String iconBisimo = '$_splash/icon_bisimo.png';

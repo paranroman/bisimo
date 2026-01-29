@@ -10,6 +10,7 @@ class AppRoutes {
   static const String welcome = '/welcome';
   static const String signIn = '/sign-in';
   static const String signUp = '/sign-up';
+  static const String profileData = '/profile-data';
 
   // Main
   static const String home = '/home';
@@ -24,7 +25,9 @@ class AppRoutes {
   static const String chat = '/chat';
   static const String chatFromCamera = '/chat-from-camera';
 
-  // Profile & Journal
+  // Profile & Settings
   static const String profile = '/profile';
+  static const String editProfile = '/edit-profile';
+  static const String settings = '/settings';
   static const String journal = '/journal';
 }

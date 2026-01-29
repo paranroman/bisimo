@@ -5,6 +5,7 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../shared/widgets/navigation/app_drawer.dart';
 import '../widgets/typing_text_bubble.dart';
 import '../widgets/emotion_button.dart';
 
@@ -19,11 +20,11 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.textPrimary),
-          onPressed: () {
-            // TODO: Open drawer/menu
-          },
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: const Text(
           'Halaman Beranda',
@@ -36,6 +37,7 @@ class HomeScreen extends StatelessWidget {
         ),
         centerTitle: false,
       ),
+      drawer: const AppDrawer(),
       body: Stack(
         children: [
           // Background Image

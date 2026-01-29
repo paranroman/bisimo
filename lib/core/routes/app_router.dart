@@ -5,10 +5,13 @@ import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/sign_in_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
+import '../../features/auth/screens/profile_data_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/emotion_detection/screens/camera_screen.dart';
 import '../../features/emotion_detection/screens/emotion_loading_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
+import '../../features/profile/screens/edit_profile_screen.dart';
+import '../../features/profile/screens/settings_screen.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -46,6 +49,13 @@ class AppRouter {
         builder: (context, state) => const SignUpScreen(),
       ),
 
+      // Profile Data Screen
+      GoRoute(
+        path: AppRoutes.profileData,
+        name: 'profileData',
+        builder: (context, state) => const ProfileDataScreen(),
+      ),
+
       // Home Screen
       GoRoute(path: AppRoutes.home, name: 'home', builder: (context, state) => const HomeScreen()),
 
@@ -65,6 +75,20 @@ class AppRouter {
 
       // Chat Screen
       GoRoute(path: AppRoutes.chat, name: 'chat', builder: (context, state) => const ChatScreen()),
+
+      // Edit Profile Screen
+      GoRoute(
+        path: AppRoutes.editProfile,
+        name: 'editProfile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+
+      // Settings Screen
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
     ],
     errorBuilder: (context, state) =>
         Scaffold(body: Center(child: Text('Route not found: ${state.uri.path}'))),

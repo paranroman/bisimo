@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "626479514348",
+    "project_id": "bisimo-usu",
+    "storage_bucket": "bisimo-usu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626479514348:android:6c142711ad1c467f01dbc9",
+        "android_client_info": {
+          "package_name": "com.example.bisimo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBruJ1gQ00Avee2zgv_OPPC2CGxGD382gE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

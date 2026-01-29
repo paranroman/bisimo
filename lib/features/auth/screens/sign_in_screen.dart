@@ -6,6 +6,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
+import '../services/auth_service.dart';
 
 /// Sign In Screen - User login page
 class SignInScreen extends StatefulWidget {
@@ -16,9 +17,12 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,10 +31,45 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  void _handleSignIn() {
-    // TODO: Implement sign in logic
-    // For now, navigate to home
-    context.go(AppRoutes.home);
+  void _handleSignIn() async {
+    // Validate form
+    if (_emailController.text.trim().isEmpty) {
+      _showSnackBar('Email tidak boleh kosong');
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      _showSnackBar('Password tidak boleh kosong');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await _authService.signIn(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (result.isSuccess) {
+      if (mounted) {
+        context.go(AppRoutes.home);
+      }
+    } else {
+      _showSnackBar(result.message ?? 'Login gagal');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontFamily: AppFonts.sfProRounded)),
+        backgroundColor: AppColors.textPrimary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
@@ -111,11 +150,13 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   // Masuk Button
                   Center(
-                    child: PrimaryButton.masuk(
-                      onPressed: _handleSignIn,
-                      width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
-                      height: 52,
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Color(0xFF41B37E))
+                        : PrimaryButton.masuk(
+                            onPressed: _handleSignIn,
+                            width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
+                            height: 52,
+                          ),
                   ),
                   const SizedBox(height: AppSizes.spaceL),
 
