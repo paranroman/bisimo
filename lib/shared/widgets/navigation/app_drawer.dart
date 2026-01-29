@@ -123,7 +123,7 @@ class AppDrawer extends StatelessWidget {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -189,7 +189,7 @@ class AppDrawer extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -227,12 +227,10 @@ class AppDrawer extends StatelessWidget {
   Widget _buildLogoutButton(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        Navigator.pop(context);
-
-        // Show confirmation dialog
+        // Show confirmation dialog first
         final confirm = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (dialogContext) => AlertDialog(
             title: const Text(
               'Keluar dari Akun',
               style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
@@ -243,14 +241,14 @@ class AppDrawer extends StatelessWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text(
                   'Batal',
                   style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
                 ),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text(
                   'Keluar',
                   style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFFE57373)),
@@ -261,6 +259,9 @@ class AppDrawer extends StatelessWidget {
         );
 
         if (confirm == true && context.mounted) {
+          // Close the drawer first
+          Navigator.pop(context);
+
           // Logout
           await AuthService().signOut();
           await ProfileService().clearProfile();
@@ -278,7 +279,7 @@ class AppDrawer extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFD32F2F).withOpacity(0.3),
+              color: const Color(0xFFD32F2F).withValues(alpha: 0.3),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

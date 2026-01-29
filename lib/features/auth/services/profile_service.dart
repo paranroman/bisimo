@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/user_profile.dart';
 
@@ -63,7 +64,7 @@ class ProfileService {
       }
     } catch (e) {
       // If Firestore fails, try local cache
-      print('Error fetching from Firestore: $e');
+      debugPrint('Error fetching from Firestore: $e');
     }
 
     // Fallback to local storage
@@ -97,7 +98,7 @@ class ProfileService {
       try {
         await _profilesCollection.doc(user.uid).delete();
       } catch (e) {
-        print('Error deleting from Firestore: $e');
+        debugPrint('Error deleting from Firestore: $e');
       }
     }
   }

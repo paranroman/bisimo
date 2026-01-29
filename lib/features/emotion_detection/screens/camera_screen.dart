@@ -18,7 +18,6 @@ class _CameraScreenState extends State<CameraScreen> {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
-  bool _isFrontCamera = true;
 
   @override
   void initState() {
@@ -96,8 +95,8 @@ class _CameraScreenState extends State<CameraScreen> {
           final circleBottom = -(circleSize * 0.4); // Posisi bawah
 
           final cimoSize = screenWidth * 0.4; // Ukuran Cimo
-          final cimoLeft = 1.0; // Posisi kiri 
-          final cimoBottom = 10.0; // Posisi bawah 
+          final cimoLeft = 1.0; // Posisi kiri
+          final cimoBottom = 10.0; // Posisi bawah
 
           return Stack(
             children: [
@@ -111,7 +110,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 ),
               ),
 
-              // Yellow circle background 
+              // Yellow circle background
               Positioned(
                 left: circleLeft,
                 bottom: circleBottom,

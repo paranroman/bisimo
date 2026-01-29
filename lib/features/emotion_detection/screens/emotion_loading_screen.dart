@@ -153,7 +153,7 @@ class _SonarWavePainter extends CustomPainter {
       final opacity = (1.0 - waveProgress) * 0.6;
 
       final wavePaint = Paint()
-        ..color = const Color(0xFFFFD859).withOpacity(opacity)
+        ..color = const Color(0xFFFFD859).withValues(alpha: opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4;
 
