@@ -12,7 +12,20 @@
           "package_name": "com.example.bisimo"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "626479514348-kun5ouhcn2mpfe709kpssa9kt18584jc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bisimo",
+            "certificate_hash": "ad9ba3b430bb9ec326090647ad7d184158084532"
+          }
+        },
+        {
+          "client_id": "626479514348-qb0m21atc8n1443e1q6f5a6tpi7p6m9l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBruJ1gQ00Avee2zgv_OPPC2CGxGD382gE"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "626479514348-qb0m21atc8n1443e1q6f5a6tpi7p6m9l.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "626479514348-bq2kp8gv30dv4gdh9db63thpth8n6ktq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bisimo"
+              }
+            }
+          ]
         }
       }
     }

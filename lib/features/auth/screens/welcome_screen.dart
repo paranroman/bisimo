@@ -9,10 +9,66 @@ import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/backgrounds/main_background.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
 import '../../../shared/widgets/icons/google_icon.dart';
+import '../services/auth_service.dart';
+import '../services/profile_service.dart';
 
 /// Welcome Screen - Entry point for authentication
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  final _authService = AuthService();
+  final _profileService = ProfileService();
+  bool _isLoading = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _authService.signInWithGoogle();
+
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        // Check if user has profile
+        final hasProfile = await _profileService.hasProfile();
+
+        if (!mounted) return;
+
+        if (result.isNewUser || !hasProfile) {
+          // New user - go to profile data screen
+          context.go(AppRoutes.profileData);
+        } else {
+          // Existing user with profile - go to home
+          context.go(AppRoutes.home);
+        }
+      } else {
+        _showError(result.message ?? 'Gagal masuk dengan Google');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Terjadi kesalahan. Silakan coba lagi.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,14 +127,17 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: AppSizes.spaceM),
 
                 // Lanjut dengan Google Button with 3D effect
-                PrimaryButton.google(
-                  onPressed: () {
-                    // TODO: Implement Google Sign In
-                  },
-                  prefixIcon: const GoogleIcon(size: 20),
-                  width: 240,
-                  height: 48,
-                ),
+                _isLoading
+                    ? const SizedBox(
+                        height: 48,
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      )
+                    : PrimaryButton.google(
+                        onPressed: _handleGoogleSignIn,
+                        prefixIcon: const GoogleIcon(size: 20),
+                        width: 240,
+                        height: 48,
+                      ),
                 const SizedBox(height: AppSizes.spaceL),
 
                 // Sign Up Link - SF Pro Rounded Bold
