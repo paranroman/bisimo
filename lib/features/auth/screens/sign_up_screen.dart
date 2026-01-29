@@ -164,7 +164,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           children: [
                             TextSpan(text: 'Sudah memiliki akun? '),
                             TextSpan(
-                              text: 'Masuk ke dalam Akun.',
+                              text: 'Masuk ke dalam akun.',
                               style: TextStyle(fontWeight: FontWeight.w700),
                             ),
                           ],
