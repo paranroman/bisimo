@@ -1,28 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
 
 /// Settings Screen - Pengaturan
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  Future<void> _openFeedback() async {
-    // Open email for feedback
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: 'bisimousu@gmail.com',
-      queryParameters: {
-        'subject': 'Masukan untuk Aplikasi Bisimo',
-        'body': 'Halo Tim Bisimo,\n\nSaya ingin memberikan masukan:\n\n',
-      },
+  Future<void> _openFeedback(BuildContext context) async {
+    const email = 'bisimousu@gmail.com';
+    const subject = 'Masukan untuk Aplikasi Bisimo';
+    const body = 'Halo Tim Bisimo,\n\nSaya ingin memberikan masukan:\n\n';
+
+    final Uri emailUri = Uri.parse(
+      'mailto:$email?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
 
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
+    try {
+      // Langsung launch tanpa cek canLaunchUrl
+      final launched = await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+
+      if (!launched && context.mounted) {
+        _showEmailFallback(context, email);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showEmailFallback(context, email);
+      }
     }
+  }
+
+  void _showEmailFallback(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Kirim Masukan',
+          style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Kirim email ke:', style: TextStyle(fontFamily: AppFonts.sfProRounded)),
+            const SizedBox(height: 8),
+            SelectableText(
+              email,
+              style: const TextStyle(
+                fontFamily: AppFonts.sfProRounded,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF41B37E),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: email));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Email disalin ke clipboard'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text(
+              'Salin Email',
+              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Tutup',
+              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -50,7 +112,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
-      drawer: const AppDrawer(),
+      drawer: const AppDrawer(currentRoute: AppRoutes.settings),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -123,7 +185,7 @@ class SettingsScreen extends StatelessWidget {
                 // Beri Masukan Button
                 Center(
                   child: GestureDetector(
-                    onTap: _openFeedback,
+                    onTap: () => _openFeedback(context),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 16),

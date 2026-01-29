@@ -26,6 +26,7 @@ class ProfileService {
     final profileWithUid = UserProfile(
       uid: user.uid,
       nama: profile.nama,
+      namaPanggilan: profile.namaPanggilan,
       tanggalLahir: profile.tanggalLahir,
       jenisKelamin: profile.jenisKelamin,
       tingkatPendidikan: profile.tingkatPendidikan,

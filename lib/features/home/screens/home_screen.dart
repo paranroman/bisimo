@@ -6,12 +6,36 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
+import '../../auth/services/profile_service.dart';
 import '../widgets/typing_text_bubble.dart';
 import '../widgets/emotion_button.dart';
 
 /// Home Screen - Main dashboard with Cimo greeting
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _profileService = ProfileService();
+  String _namaPanggilan = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await _profileService.getProfile();
+    if (mounted && profile != null) {
+      setState(() {
+        _namaPanggilan = profile.namaPanggilan;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +61,7 @@ class HomeScreen extends StatelessWidget {
         ),
         centerTitle: false,
       ),
-      drawer: const AppDrawer(),
+      drawer: const AppDrawer(currentRoute: AppRoutes.home),
       body: Stack(
         children: [
           // Background Image
@@ -110,8 +134,8 @@ class HomeScreen extends StatelessWidget {
                               left: bubbleLeft,
                               top: bubbleTop,
                               right: screenWidth * 0.02,
-                              child: const TypingTextBubble(
-                                userName: 'y/n',
+                              child: TypingTextBubble(
+                                userName: _namaPanggilan.isNotEmpty ? _namaPanggilan : 'Teman',
                                 greetingPrefix: 'Halo, ',
                                 greetingSuffix: '!\n',
                                 bodyText: 'Cimo ingin mendengarmu di sini,\n',

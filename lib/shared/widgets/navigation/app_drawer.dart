@@ -9,10 +9,16 @@ import '../../../features/auth/services/profile_service.dart';
 
 /// App Drawer - Sidebar Navigation
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+  final String currentRoute;
+
+  const AppDrawer({super.key, required this.currentRoute});
 
   @override
   Widget build(BuildContext context) {
+    final isHome = currentRoute == AppRoutes.home;
+    final isEditProfile = currentRoute == AppRoutes.editProfile;
+    final isSettings = currentRoute == AppRoutes.settings;
+
     return Drawer(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -35,7 +41,21 @@ class AppDrawer extends StatelessWidget {
                 // Menu Items
                 _buildMenuButton(
                   context: context,
+                  label: 'Beranda',
+                  backgroundColor: isHome ? const Color(0xFF41B37E) : Colors.white,
+                  textColor: isHome ? Colors.white : AppColors.textPrimary,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRoutes.home);
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildMenuButton(
+                  context: context,
                   label: 'Edit Profil',
+                  backgroundColor: isEditProfile ? const Color(0xFF41B37E) : Colors.white,
+                  textColor: isEditProfile ? Colors.white : AppColors.textPrimary,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.editProfile);
@@ -68,7 +88,9 @@ class AppDrawer extends StatelessWidget {
                 _buildMenuButton(
                   context: context,
                   label: 'Pengaturan',
-                  backgroundColor: const Color(0xFFFFBD30),
+                  backgroundColor: isSettings ? const Color(0xFFE5A82B) : const Color(0xFFFFBD30),
+                  textColor: isSettings ? Colors.white : AppColors.textPrimary,
+                  borderColor: isSettings ? const Color(0xFFB8860B) : null,
                   onTap: () {
                     Navigator.pop(context);
                     context.push(AppRoutes.settings);
@@ -148,6 +170,8 @@ class AppDrawer extends StatelessWidget {
     required String label,
     String? subtitle,
     Color backgroundColor = Colors.white,
+    Color textColor = AppColors.textPrimary,
+    Color? borderColor,
     required VoidCallback onTap,
     bool isDisabled = false,
   }) {
@@ -159,7 +183,10 @@ class AppDrawer extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.grey.shade300, width: 1),
+          border: Border.all(
+            color: borderColor ?? Colors.grey.shade300,
+            width: borderColor != null ? 2 : 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -176,7 +203,7 @@ class AppDrawer extends StatelessWidget {
                 fontFamily: AppFonts.sfProRounded,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: isDisabled ? AppColors.textHint : AppColors.textPrimary,
+                color: isDisabled ? AppColors.textHint : textColor,
               ),
             ),
             if (subtitle != null) ...[

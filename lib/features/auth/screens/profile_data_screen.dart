@@ -20,6 +20,7 @@ class ProfileDataScreen extends StatefulWidget {
 
 class _ProfileDataScreenState extends State<ProfileDataScreen> {
   final _namaController = TextEditingController();
+  final _namaPanggilanController = TextEditingController();
   final _namaOrangTuaController = TextEditingController();
   final _kontakOrangTuaController = TextEditingController();
   final _profileService = ProfileService();
@@ -35,6 +36,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
   @override
   void dispose() {
     _namaController.dispose();
+    _namaPanggilanController.dispose();
     _namaOrangTuaController.dispose();
     _kontakOrangTuaController.dispose();
     super.dispose();
@@ -77,6 +79,10 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
       _showSnackBar('Nama tidak boleh kosong');
       return;
     }
+    if (_namaPanggilanController.text.trim().isEmpty) {
+      _showSnackBar('Nama panggilan tidak boleh kosong');
+      return;
+    }
     if (_selectedDate == null) {
       _showSnackBar('Tanggal lahir harus diisi');
       return;
@@ -103,6 +109,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     // Create profile
     final profile = UserProfile(
       nama: _namaController.text.trim(),
+      namaPanggilan: _namaPanggilanController.text.trim(),
       tanggalLahir: _selectedDate!,
       jenisKelamin: _selectedGender!,
       tingkatPendidikan: _selectedEducation!,
@@ -137,159 +144,195 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Image
-            Image.asset(
-              AssetPaths.signUpHeader,
-              width: double.infinity,
-              fit: BoxFit.fitWidth,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  color: AppColors.primaryLight.withValues(alpha: 0.3),
-                  child: const Center(
-                    child: Icon(Icons.image, size: 80, color: AppColors.textHint),
-                  ),
-                );
-              },
-            ),
-
-            // Form Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: AppSizes.spaceL),
-
-                  // Title
-                  const Text(
-                    'Lengkapi Data Diri',
-                    style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Data ini akan digunakan untuk profil anak',
-                    style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.textHint,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSizes.spaceXL),
-
-                  // Nama Field
-                  _buildLabel('Nama Anak'),
-                  const SizedBox(height: AppSizes.spaceS),
-                  _buildTextField(
-                    controller: _namaController,
-                    hintText: 'Masukkan nama lengkap...',
-                  ),
-                  const SizedBox(height: AppSizes.spaceM),
-
-                  // Tanggal Lahir Field
-                  _buildLabel('Tanggal Lahir'),
-                  const SizedBox(height: AppSizes.spaceS),
-                  _buildDatePicker(),
-                  const SizedBox(height: AppSizes.spaceM),
-
-                  // Jenis Kelamin Field
-                  _buildLabel('Jenis Kelamin'),
-                  const SizedBox(height: AppSizes.spaceS),
-                  _buildDropdown(
-                    value: _selectedGender,
-                    items: _genderOptions,
-                    hint: 'Pilih jenis kelamin',
-                    onChanged: (value) {
-                      setState(() => _selectedGender = value);
-                    },
-                  ),
-                  const SizedBox(height: AppSizes.spaceM),
-
-                  // Tingkat Pendidikan Field
-                  _buildLabel('Tingkat Pendidikan'),
-                  const SizedBox(height: AppSizes.spaceS),
-                  _buildDropdown(
-                    value: _selectedEducation,
-                    items: _educationOptions,
-                    hint: 'Pilih tingkat pendidikan',
-                    onChanged: (value) {
-                      setState(() => _selectedEducation = value);
-                    },
-                  ),
-                  const SizedBox(height: AppSizes.spaceL),
-
-                  // Divider with title
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(color: AppColors.textHint)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          'Data Orang Tua/Wali',
-                          style: TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textHint,
-                          ),
-                        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header Image
+                Image.asset(
+                  AssetPaths.signUpHeader,
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 200,
+                      color: AppColors.primaryLight.withValues(alpha: 0.3),
+                      child: const Center(
+                        child: Icon(Icons.image, size: 80, color: AppColors.textHint),
                       ),
-                      const Expanded(child: Divider(color: AppColors.textHint)),
+                    );
+                  },
+                ),
+
+                // Form Section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: AppSizes.spaceL),
+
+                      // Title
+                      const Text(
+                        'Lengkapi Data Diri',
+                        style: TextStyle(
+                          fontFamily: AppFonts.sfProRounded,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Data ini akan digunakan untuk profil anak',
+                        style: TextStyle(
+                          fontFamily: AppFonts.sfProRounded,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textHint,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppSizes.spaceXL),
+
+                      // Nama Field
+                      _buildLabel('Nama Anak'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildTextField(
+                        controller: _namaController,
+                        hintText: 'Masukkan nama lengkap...',
+                      ),
+                      const SizedBox(height: AppSizes.spaceM),
+
+                      // Nama Panggilan Field
+                      _buildLabel('Nama Panggilan'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildTextField(
+                        controller: _namaPanggilanController,
+                        hintText: 'Nama yang akan disapa Cimo...',
+                      ),
+                      const SizedBox(height: AppSizes.spaceM),
+
+                      // Tanggal Lahir Field
+                      _buildLabel('Tanggal Lahir'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildDatePicker(),
+                      const SizedBox(height: AppSizes.spaceM),
+
+                      // Jenis Kelamin Field
+                      _buildLabel('Jenis Kelamin'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildDropdown(
+                        value: _selectedGender,
+                        items: _genderOptions,
+                        hint: 'Pilih jenis kelamin',
+                        onChanged: (value) {
+                          setState(() => _selectedGender = value);
+                        },
+                      ),
+                      const SizedBox(height: AppSizes.spaceM),
+
+                      // Tingkat Pendidikan Field
+                      _buildLabel('Tingkat Pendidikan'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildDropdown(
+                        value: _selectedEducation,
+                        items: _educationOptions,
+                        hint: 'Pilih tingkat pendidikan',
+                        onChanged: (value) {
+                          setState(() => _selectedEducation = value);
+                        },
+                      ),
+                      const SizedBox(height: AppSizes.spaceL),
+
+                      // Divider with title
+                      Row(
+                        children: [
+                          const Expanded(child: Divider(color: AppColors.textHint)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'Data Orang Tua/Wali',
+                              style: TextStyle(
+                                fontFamily: AppFonts.sfProRounded,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textHint,
+                              ),
+                            ),
+                          ),
+                          const Expanded(child: Divider(color: AppColors.textHint)),
+                        ],
+                      ),
+                      const SizedBox(height: AppSizes.spaceM),
+
+                      // Nama Orang Tua/Wali Field
+                      _buildLabel('Nama Orang Tua/Wali'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildTextField(
+                        controller: _namaOrangTuaController,
+                        hintText: 'Masukkan nama orang tua/wali...',
+                      ),
+                      const SizedBox(height: AppSizes.spaceM),
+
+                      // Kontak Orang Tua/Wali Field
+                      _buildLabel('Kontak Orang Tua/Wali'),
+                      const SizedBox(height: AppSizes.spaceS),
+                      _buildTextField(
+                        controller: _kontakOrangTuaController,
+                        hintText: 'Masukkan nomor telepon...',
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: AppSizes.spaceXL),
+
+                      // Submit Button
+                      Center(
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Color(0xFF41B37E))
+                            : PrimaryButton(
+                                text: 'Simpan',
+                                onPressed: _handleSubmit,
+                                backgroundColor: const Color(0xFF41B37E),
+                                textColor: Colors.black,
+                                shadowColor: const Color(0xFF2D7D58),
+                                width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
+                                height: 52,
+                              ),
+                      ),
+                      const SizedBox(height: AppSizes.spaceXL),
                     ],
                   ),
-                  const SizedBox(height: AppSizes.spaceM),
-
-                  // Nama Orang Tua/Wali Field
-                  _buildLabel('Nama Orang Tua/Wali'),
-                  const SizedBox(height: AppSizes.spaceS),
-                  _buildTextField(
-                    controller: _namaOrangTuaController,
-                    hintText: 'Masukkan nama orang tua/wali...',
-                  ),
-                  const SizedBox(height: AppSizes.spaceM),
-
-                  // Kontak Orang Tua/Wali Field
-                  _buildLabel('Kontak Orang Tua/Wali'),
-                  const SizedBox(height: AppSizes.spaceS),
-                  _buildTextField(
-                    controller: _kontakOrangTuaController,
-                    hintText: 'Masukkan nomor telepon...',
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: AppSizes.spaceXL),
-
-                  // Submit Button
-                  Center(
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Color(0xFF41B37E))
-                        : PrimaryButton(
-                            text: 'Simpan',
-                            onPressed: _handleSubmit,
-                            backgroundColor: const Color(0xFF41B37E),
-                            textColor: Colors.black,
-                            shadowColor: const Color(0xFF2D7D58),
-                            width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
-                            height: 52,
-                          ),
-                  ),
-                  const SizedBox(height: AppSizes.spaceXL),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Back Button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 10,
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24),
+              ),
+              onPressed: () => context.pop(),
+            ),
+          ),
+        ],
       ),
     );
   }

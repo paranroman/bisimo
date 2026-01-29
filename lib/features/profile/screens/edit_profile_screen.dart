@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../data/models/user_profile.dart';
 import '../../auth/services/profile_service.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
@@ -22,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Editable fields
   late TextEditingController _namaController;
+  late TextEditingController _namaPanggilanController;
   DateTime? _selectedDate;
   String? _selectedGender;
 
@@ -31,12 +33,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _namaController = TextEditingController();
+    _namaPanggilanController = TextEditingController();
     _loadProfile();
   }
 
   @override
   void dispose() {
     _namaController.dispose();
+    _namaPanggilanController.dispose();
     super.dispose();
   }
 
@@ -47,6 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _profile = profile;
         if (profile != null) {
           _namaController.text = profile.nama;
+          _namaPanggilanController.text = profile.namaPanggilan;
           _selectedDate = profile.tanggalLahir;
           _selectedGender = profile.jenisKelamin;
         }
@@ -175,11 +180,61 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  void _editNamaPanggilan() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: _namaPanggilanController.text);
+        return AlertDialog(
+          title: const Text(
+            'Edit Nama Panggilan',
+            style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+            decoration: InputDecoration(
+              hintText: 'Masukkan nama panggilan...',
+              hintStyle: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFF41B37E), width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Batal',
+                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _namaPanggilanController.text = controller.text);
+                Navigator.pop(context);
+                _saveProfile();
+              },
+              child: const Text(
+                'Simpan',
+                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _saveProfile() async {
     if (_profile != null && _selectedDate != null && _selectedGender != null) {
       final updatedProfile = UserProfile(
         uid: _profile!.uid,
         nama: _namaController.text,
+        namaPanggilan: _namaPanggilanController.text,
         tanggalLahir: _selectedDate!,
         jenisKelamin: _selectedGender!,
         tingkatPendidikan: _profile!.tingkatPendidikan,
@@ -228,7 +283,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ),
-      drawer: const AppDrawer(),
+      drawer: const AppDrawer(currentRoute: AppRoutes.editProfile),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -280,6 +335,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             : 'Belum diisi',
                         icon: Icons.edit_outlined,
                         onTap: _editNama,
+                      ),
+                      _buildProfileField(
+                        label: 'Nama Panggilan',
+                        value: _namaPanggilanController.text.isNotEmpty
+                            ? _namaPanggilanController.text
+                            : 'Belum diisi',
+                        icon: Icons.edit_outlined,
+                        onTap: _editNamaPanggilan,
                       ),
                       _buildProfileField(
                         label: 'Tanggal Lahir',

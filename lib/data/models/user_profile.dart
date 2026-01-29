@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserProfile {
   final String? uid;
   final String nama;
+  final String namaPanggilan; // Nama panggilan untuk sapaan dari Cimo
   final DateTime tanggalLahir;
   final String jenisKelamin; // 'Laki-laki' atau 'Perempuan'
   final String tingkatPendidikan; // 'SD', 'SMP', 'SMA'
@@ -17,6 +18,7 @@ class UserProfile {
   UserProfile({
     this.uid,
     required this.nama,
+    required this.namaPanggilan,
     required this.tanggalLahir,
     required this.jenisKelamin,
     required this.tingkatPendidikan,
@@ -33,6 +35,7 @@ class UserProfile {
     return {
       'uid': uid,
       'nama': nama,
+      'namaPanggilan': namaPanggilan,
       'tanggalLahir': Timestamp.fromDate(tanggalLahir),
       'jenisKelamin': jenisKelamin,
       'tingkatPendidikan': tingkatPendidikan,
@@ -52,6 +55,7 @@ class UserProfile {
     return {
       'uid': uid,
       'nama': nama,
+      'namaPanggilan': namaPanggilan,
       'tanggalLahir': tanggalLahir.toIso8601String(),
       'jenisKelamin': jenisKelamin,
       'tingkatPendidikan': tingkatPendidikan,
@@ -70,6 +74,7 @@ class UserProfile {
     return UserProfile(
       uid: doc.id,
       nama: map['nama'] ?? '',
+      namaPanggilan: map['namaPanggilan'] ?? '',
       tanggalLahir: (map['tanggalLahir'] as Timestamp).toDate(),
       jenisKelamin: map['jenisKelamin'] ?? '',
       tingkatPendidikan: map['tingkatPendidikan'] ?? '',
@@ -87,6 +92,7 @@ class UserProfile {
     return UserProfile(
       uid: map['uid'],
       nama: map['nama'] ?? '',
+      namaPanggilan: map['namaPanggilan'] ?? '',
       tanggalLahir: DateTime.parse(map['tanggalLahir']),
       jenisKelamin: map['jenisKelamin'] ?? '',
       tingkatPendidikan: map['tingkatPendidikan'] ?? '',
@@ -103,6 +109,7 @@ class UserProfile {
   UserProfile copyWith({
     String? uid,
     String? nama,
+    String? namaPanggilan,
     DateTime? tanggalLahir,
     String? jenisKelamin,
     String? tingkatPendidikan,
@@ -116,6 +123,7 @@ class UserProfile {
     return UserProfile(
       uid: uid ?? this.uid,
       nama: nama ?? this.nama,
+      namaPanggilan: namaPanggilan ?? this.namaPanggilan,
       tanggalLahir: tanggalLahir ?? this.tanggalLahir,
       jenisKelamin: jenisKelamin ?? this.jenisKelamin,
       tingkatPendidikan: tingkatPendidikan ?? this.tingkatPendidikan,
