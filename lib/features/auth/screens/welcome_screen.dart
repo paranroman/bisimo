@@ -108,7 +108,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: AppSizes.spaceM),
 
-                // Title - Lexend Regular
+                // Title
                 const Text(
                   'Ekspresikan dirimu bersama Cimo',
                   style: AppTextStyles.welcomeTitle,
@@ -116,7 +116,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: AppSizes.spaceL),
 
-                // Masuk Button with 3D effect
+                // Button Masuk
                 PrimaryButton.masuk(
                   onPressed: () {
                     context.push(AppRoutes.signIn);
@@ -126,7 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: AppSizes.spaceM),
 
-                // Lanjut dengan Google Button with 3D effect
+                // Button Google Sign-In
                 _isLoading
                     ? const SizedBox(
                         height: 48,
@@ -140,7 +140,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                 const SizedBox(height: AppSizes.spaceL),
 
-                // Sign Up Link - SF Pro Rounded Bold
+                // Sign Up Link
                 GestureDetector(
                   onTap: () {
                     context.push(AppRoutes.signUp);
