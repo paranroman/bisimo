@@ -58,7 +58,6 @@ flutter:
     - assets/Screens/Cimo/
     - assets/Screens/Home/
     - assets/Screens/Splash/
-    - assets/UIUX/
 
   fonts:
     - family: Baloo2

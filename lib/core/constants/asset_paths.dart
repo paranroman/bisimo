@@ -8,7 +8,7 @@ class AssetPaths {
   static const String _cimo = 'assets/Screens/Cimo';
   static const String _home = 'assets/Screens/Home';
   static const String _splash = 'assets/Screens/Splash';
-  static const String _uiux = 'assets/UIUX';
+  static const String _models = 'assets/Models';
 
   // Background
   static const String mainBackground = '$_screens/main_background.png';
@@ -33,15 +33,8 @@ class AssetPaths {
   static const String cimoSurprise = '$_cimo/CIMO SURPRISE.png';
   static const String cimoDisgust = '$_cimo/CIMO DISGUST.png';
 
-  // UI/UX Reference (untuk development reference)
-  static const String uiCamera = '$_uiux/Camera.png';
-  static const String uiChatFromCamera = '$_uiux/Chat from Camera option.png';
-  static const String uiChatLoading = '$_uiux/Chat Loading.png';
-  static const String uiHome = '$_uiux/Home.png';
-  static const String uiSignIn = '$_uiux/Sign In.png';
-  static const String uiSignUp = '$_uiux/Sign up.png';
-  static const String uiSplashScreen = '$_uiux/Splash Screen.png';
-  static const String uiWelcome = '$_uiux/Welcome.png';
+  // Model
+  static const String emotionModel = '$_models/emotion_model.tflite';
 
   /// Get Cimo image path by emotion name
   static String getCimoByEmotion(String emotion) {

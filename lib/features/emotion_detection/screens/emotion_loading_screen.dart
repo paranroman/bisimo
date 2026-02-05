@@ -4,7 +4,7 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 
-/// Loading Screen - Shows while detecting emotion
+/// Loading Screen - Shows while detecting emotion (Placeholder)
 class EmotionLoadingScreen extends StatefulWidget {
   const EmotionLoadingScreen({super.key});
 
@@ -37,8 +37,8 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
       });
     _dotsController.forward();
 
-    // Navigate to chat after 5 seconds
-    Future.delayed(const Duration(seconds: 5), () {
+    // Navigate to chat after loading animation
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         context.go(AppRoutes.chat);
       }

@@ -6,7 +6,7 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 
-/// Camera Screen - Emotion Detection via Camera
+/// Camera Screen - Emotion Detection via Camera (Placeholder)
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -18,6 +18,7 @@ class _CameraScreenState extends State<CameraScreen> {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
+  bool _isDetecting = false;
 
   @override
   void initState() {
@@ -60,8 +61,20 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   void _onSendPressed() {
-    // Navigate to loading screen
-    context.push(AppRoutes.emotionDetection);
+    if (_isDetecting) return;
+
+    setState(() {
+      _isDetecting = true;
+    });
+
+    // Navigate to loading screen (placeholder - no actual detection)
+    if (mounted) {
+      context.push(AppRoutes.emotionDetection);
+    }
+
+    setState(() {
+      _isDetecting = false;
+    });
   }
 
   @override
@@ -90,13 +103,13 @@ class _CameraScreenState extends State<CameraScreen> {
         builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
 
-          final circleSize = screenWidth * 0.55; // Ukuran lingkaran
-          final circleLeft = -(circleSize * 0.25); // Posisi kiri
-          final circleBottom = -(circleSize * 0.4); // Posisi bawah
+          final circleSize = screenWidth * 0.55;
+          final circleLeft = -(circleSize * 0.25);
+          final circleBottom = -(circleSize * 0.4);
 
-          final cimoSize = screenWidth * 0.4; // Ukuran Cimo
-          final cimoLeft = 1.0; // Posisi kiri
-          final cimoBottom = 10.0; // Posisi bawah
+          final cimoSize = screenWidth * 0.4;
+          final cimoLeft = 1.0;
+          final cimoBottom = 10.0;
 
           return Stack(
             children: [
@@ -137,15 +150,15 @@ class _CameraScreenState extends State<CameraScreen> {
                 right: 24,
                 bottom: 40,
                 child: GestureDetector(
-                  onTap: _onSendPressed,
+                  onTap: _isDetecting ? null : _onSendPressed,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF41B37E),
+                      color: _isDetecting ? Colors.grey : const Color(0xFF41B37E),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2D7D58),
+                          color: _isDetecting ? Colors.grey.shade600 : const Color(0xFF2D7D58),
                           offset: const Offset(0, 4),
                           blurRadius: 0,
                         ),
@@ -154,17 +167,25 @@ class _CameraScreenState extends State<CameraScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Kirim',
-                          style: TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
+                        if (_isDetecting)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        else ...[
+                          const Text(
+                            'Kirim',
+                            style: TextStyle(
+                              fontFamily: AppFonts.sfProRounded,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.send, color: Colors.black, size: 20),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.send, color: Colors.black, size: 20),
+                        ],
                       ],
                     ),
                   ),
