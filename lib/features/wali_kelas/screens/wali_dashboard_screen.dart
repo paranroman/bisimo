@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
@@ -7,6 +8,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../data/models/student_model.dart';
 import '../../../providers/student_provider.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
+import '../../auth/services/profile_service.dart';
 import '../widgets/add_student_dialog.dart';
 import '../widgets/student_token_dialog.dart';
 import '../widgets/student_card.dart';
@@ -20,13 +22,37 @@ class WaliDashboardScreen extends StatefulWidget {
 }
 
 class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
+  final _profileService = ProfileService();
+  String _waliName = '';
+  String _waliGender = '';
+  String? _waliPhotoUrl;
+
   @override
   void initState() {
     super.initState();
-    // Load students when screen initializes
+    // Load students and wali profile when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<StudentProvider>().loadStudents();
+      _loadWaliProfile();
     });
+  }
+
+  Future<void> _loadWaliProfile() async {
+    final profile = await _profileService.getProfile();
+    if (mounted && profile != null) {
+      setState(() {
+        _waliName = profile.nama;
+        _waliGender = profile.jenisKelamin;
+        _waliPhotoUrl = profile.photoUrl;
+      });
+    }
+  }
+  
+  /// Get formatted Wali name with title based on gender
+  String get _formattedWaliName {
+    if (_waliName.isEmpty) return 'Wali Kelas';
+    final title = _waliGender == 'Laki-laki' ? 'Pak' : 'Bu';
+    return '$title $_waliName';
   }
 
   void _showAddStudentDialog() async {
@@ -46,10 +72,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => StudentTokenDialog(
-        student: student,
-        plainToken: plainToken,
-      ),
+      builder: (context) => StudentTokenDialog(student: student, plainToken: plainToken),
     );
   }
 
@@ -59,10 +82,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       builder: (context) => AlertDialog(
         title: const Text(
           'Buat Token Baru?',
-          style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Token lama untuk ${student.displayName} akan tidak berlaku lagi. Lanjutkan?',
@@ -73,20 +93,14 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
               'Batal',
-              style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
-                color: AppColors.textHint,
-              ),
+              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Ya, Buat Baru',
-              style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
-                color: Color(0xFF41B37E),
-              ),
+              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
             ),
           ),
         ],
@@ -114,10 +128,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       builder: (context) => AlertDialog(
         title: const Text(
           'Hapus Murid?',
-          style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Apakah Anda yakin ingin menghapus ${student.displayName} dari daftar murid?',
@@ -128,20 +139,14 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
               'Batal',
-              style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
-                color: AppColors.textHint,
-              ),
+              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Hapus',
-              style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
-                color: Color(0xFFE57373),
-              ),
+              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFFE57373)),
             ),
           ),
         ],
@@ -153,9 +158,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              success ? 'Murid berhasil dihapus' : 'Gagal menghapus murid',
-            ),
+            content: Text(success ? 'Murid berhasil dihapus' : 'Gagal menghapus murid'),
             backgroundColor: success ? const Color(0xFF41B37E) : Colors.red,
           ),
         );
@@ -190,63 +193,57 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       drawer: const AppDrawer(currentRoute: AppRoutes.waliDashboard),
       body: Stack(
         children: [
-          // Background
+          // Simple gradient background (no decorative balls)
           Positioned.fill(
-            child: Image.asset(
-              AssetPaths.homeBackground,
-              fit: BoxFit.fill,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(color: const Color(0xFFFFF8E7));
-              },
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFF8E7), Colors.white],
+                ),
+              ),
             ),
           ),
           // Content
           Consumer<StudentProvider>(
             builder: (context, provider, child) {
               if (provider.isLoading && provider.students.isEmpty) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF41B37E)),
-                );
+                return const Center(child: CircularProgressIndicator(color: Color(0xFF41B37E)));
               }
 
               return RefreshIndicator(
-                onRefresh: () => provider.loadStudents(),
+                onRefresh: () async {
+                  await provider.loadStudents();
+                  await _loadWaliProfile();
+                },
                 color: const Color(0xFF41B37E),
                 child: CustomScrollView(
                   slivers: [
                     // Header Section
-                    SliverToBoxAdapter(
-                      child: _buildHeader(provider.studentCount),
-                    ),
+                    SliverToBoxAdapter(child: _buildHeader(provider.studentCount)),
                     // Students List
                     if (provider.students.isEmpty)
-                      SliverFillRemaining(
-                        child: _buildEmptyState(),
-                      )
+                      SliverFillRemaining(child: _buildEmptyState())
                     else
                       SliverPadding(
                         padding: const EdgeInsets.all(20),
                         sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final student = provider.students[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: StudentCard(
-                                  student: student,
-                                  onRegenerateToken: () => _handleRegenerateToken(student),
-                                  onDelete: () => _handleDeleteStudent(student),
-                                ),
-                              );
-                            },
-                            childCount: provider.students.length,
-                          ),
+                          delegate: SliverChildBuilderDelegate((context, index) {
+                            final student = provider.students[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: StudentCard(
+                                student: student,
+                                onRegenerateToken: () => _handleRegenerateToken(student),
+                                onDelete: () => _handleDeleteStudent(student),
+                              ),
+                            );
+                          }, childCount: provider.students.length),
                         ),
                       ),
                     // Bottom padding
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 100),
-                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
                   ],
                 ),
               );
@@ -276,87 +273,105 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome Card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF41B37E), Color(0xFF2D7D58)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF2D7D58).withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+          // Welcome Card - Tappable to edit profile
+          GestureDetector(
+            onTap: () async {
+              await context.push(AppRoutes.editProfile);
+              // Reload profile when returning from edit
+              _loadWaliProfile();
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF41B37E), Color(0xFF2D7D58)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Cimo Avatar
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFFFBD30),
-                    border: Border.all(color: Colors.white, width: 3),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2D7D58).withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      AssetPaths.cimoJoy,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.emoji_emotions,
-                          size: 40,
-                          color: Colors.white,
-                        );
-                      },
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Avatar - show photo if available
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFFFBD30),
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
+                    child: ClipOval(
+                      child: _waliPhotoUrl != null && _waliPhotoUrl!.isNotEmpty
+                          ? Image.network(
+                              _waliPhotoUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  AssetPaths.cimoJoy,
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              AssetPaths.cimoJoy,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.person, size: 40, color: Colors.white);
+                              },
+                            ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Selamat Datang,',
-                        style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white70,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Selamat Datang,',
+                          style: TextStyle(
+                            fontFamily: AppFonts.sfProRounded,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white70,
+                          ),
                         ),
-                      ),
-                      const Text(
-                        'Wali Kelas!',
-                        style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                        Text(
+                          '$_formattedWaliName!',
+                          style: const TextStyle(
+                            fontFamily: AppFonts.sfProRounded,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$studentCount murid terdaftar',
-                        style: const TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white70,
+                        const SizedBox(height: 4),
+                        Text(
+                          '$studentCount murid terdaftar',
+                          style: const TextStyle(
+                            fontFamily: AppFonts.sfProRounded,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white70,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  // Edit indicator
+                  const Icon(Icons.edit, color: Colors.white70, size: 20),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -384,14 +399,10 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFBD30).withValues(alpha: 0.2),
+              color: const Color(0xFF41B37E).withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.people_outline,
-              size: 60,
-              color: Color(0xFFFFBD30),
-            ),
+            child: const Icon(Icons.people_outline, size: 60, color: Color(0xFF41B37E)),
           ),
           const SizedBox(height: 24),
           const Text(

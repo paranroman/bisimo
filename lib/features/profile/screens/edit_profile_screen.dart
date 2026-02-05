@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
@@ -23,8 +23,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Editable fields
   late TextEditingController _namaController;
-  late TextEditingController _namaPanggilanController;
-  DateTime? _selectedDate;
   String? _selectedGender;
 
   final List<String> _genderOptions = ['Laki-laki', 'Perempuan'];
@@ -33,57 +31,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _namaController = TextEditingController();
-    _namaPanggilanController = TextEditingController();
     _loadProfile();
   }
 
   @override
   void dispose() {
     _namaController.dispose();
-    _namaPanggilanController.dispose();
     super.dispose();
   }
 
   Future<void> _loadProfile() async {
     final profile = await _profileService.getProfile();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    
     if (mounted) {
       setState(() {
         _profile = profile;
         if (profile != null) {
+          // Use existing profile data
           _namaController.text = profile.nama;
-          _namaPanggilanController.text = profile.namaPanggilan;
-          _selectedDate = profile.tanggalLahir;
           _selectedGender = profile.jenisKelamin;
+        } else if (currentUser != null) {
+          // Pre-fill from Google/Firebase Auth data if no profile exists
+          final displayName = currentUser.displayName;
+          if (displayName != null && displayName.isNotEmpty) {
+            _namaController.text = displayName;
+          }
         }
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now().subtract(const Duration(days: 365 * 10)),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      locale: const Locale('id', 'ID'),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF41B37E),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-      _saveProfile();
     }
   }
 
@@ -180,82 +156,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _editNamaPanggilan() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController(text: _namaPanggilanController.text);
-        return AlertDialog(
-          title: const Text(
-            'Edit Nama Panggilan',
-            style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
-          ),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            style: const TextStyle(fontFamily: AppFonts.sfProRounded),
-            decoration: InputDecoration(
-              hintText: 'Masukkan nama panggilan...',
-              hintStyle: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF41B37E), width: 2),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Batal',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() => _namaPanggilanController.text = controller.text);
-                Navigator.pop(context);
-                _saveProfile();
-              },
-              child: const Text(
-                'Simpan',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _saveProfile() async {
-    if (_profile != null && _selectedDate != null && _selectedGender != null) {
+    if (_selectedGender != null && _namaController.text.isNotEmpty) {
       final updatedProfile = UserProfile(
-        uid: _profile!.uid,
+        uid: _profile?.uid,
         nama: _namaController.text,
-        namaPanggilan: _namaPanggilanController.text,
-        tanggalLahir: _selectedDate!,
+        namaPanggilan: _namaController.text, // Use nama as namaPanggilan
+        tanggalLahir: _profile?.tanggalLahir ?? DateTime(2000, 1, 1),
         jenisKelamin: _selectedGender!,
-        tingkatPendidikan: _profile!.tingkatPendidikan,
-        namaOrangTua: _profile!.namaOrangTua,
-        kontakOrangTua: _profile!.kontakOrangTua,
-        email: _profile!.email,
+        tingkatPendidikan: _profile?.tingkatPendidikan ?? '',
+        namaOrangTua: _profile?.namaOrangTua ?? '',
+        kontakOrangTua: _profile?.kontakOrangTua ?? '',
+        email: _profile?.email,
+        photoUrl: _profile?.photoUrl,
       );
       await _profileService.saveProfile(updatedProfile);
       setState(() => _profile = updatedProfile);
     }
-  }
-
-  int _calculateAge() {
-    if (_selectedDate == null) return 0;
-    final now = DateTime.now();
-    int age = now.year - _selectedDate!.year;
-    if (now.month < _selectedDate!.month ||
-        (now.month == _selectedDate!.month && now.day < _selectedDate!.day)) {
-      age--;
-    }
-    return age;
   }
 
   @override
@@ -308,26 +225,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       const SizedBox(height: 30),
 
-                      // Cimo Avatar
-                      Container(
-                        width: 160,
-                        height: 160,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFFFBD30),
-                          border: Border.all(color: const Color(0xFFFFD859), width: 8),
-                        ),
-                        child: Center(
-                          child: SizedBox(
-                            width: 100,
-                            height: 100,
-                            child: Image.asset(AssetPaths.cimoJoy, fit: BoxFit.contain),
-                          ),
-                        ),
-                      ),
+                      // Profile Avatar - show Google photo or Cimo
+                      _buildProfileAvatar(),
                       const SizedBox(height: 40),
 
-                      // Profile Fields
+                      // Profile Fields - Only Nama and Jenis Kelamin
                       _buildProfileField(
                         label: 'Nama',
                         value: _namaController.text.isNotEmpty
@@ -337,30 +239,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onTap: _editNama,
                       ),
                       _buildProfileField(
-                        label: 'Nama Panggilan',
-                        value: _namaPanggilanController.text.isNotEmpty
-                            ? _namaPanggilanController.text
-                            : 'Belum diisi',
-                        icon: Icons.edit_outlined,
-                        onTap: _editNamaPanggilan,
-                      ),
-                      _buildProfileField(
-                        label: 'Tanggal Lahir',
-                        value: _selectedDate != null
-                            ? DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate!)
-                            : 'Belum memasukkan Tanggal',
-                        icon: Icons.calendar_today_outlined,
-                        onTap: _selectDate,
-                      ),
-                      _buildProfileField(
                         label: 'Jenis Kelamin',
                         value: _selectedGender ?? 'Belum dipilih',
                         icon: Icons.keyboard_arrow_down,
                         onTap: _showGenderPicker,
-                      ),
-                      _buildProfileField(
-                        label: 'Usia',
-                        value: _selectedDate != null ? '${_calculateAge()} Tahun' : '-',
                         showDivider: false,
                       ),
 
@@ -418,6 +300,87 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 12),
         ],
       ],
+    );
+  }
+
+  Widget _buildProfileAvatar() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final photoUrl = _profile?.photoUrl ?? currentUser?.photoURL;
+    
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      // Show Google/Firebase profile photo
+      return Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFFFD859), width: 6),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image.network(
+                photoUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF41B37E),
+                      strokeWidth: 2,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          // Edit avatar badge
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF41B37E),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+            ),
+            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+          ),
+        ],
+      );
+    }
+    
+    // Default Cimo avatar when no photo
+    return _buildDefaultAvatar();
+  }
+
+  Widget _buildDefaultAvatar() {
+    return Container(
+      width: 160,
+      height: 160,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFFFFBD30),
+        border: Border.all(color: const Color(0xFFFFD859), width: 8),
+      ),
+      child: Center(
+        child: SizedBox(
+          width: 100,
+          height: 100,
+          child: Image.asset(AssetPaths.cimoJoy, fit: BoxFit.contain),
+        ),
+      ),
     );
   }
 }

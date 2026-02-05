@@ -24,6 +24,9 @@ dependencies:
 
   # Camera (placeholder untuk nanti)
   camera: ^0.11.0+2
+  
+  # Image Picker
+  image_picker: ^1.1.2
 
   # Utils
   shared_preferences: ^2.3.3
@@ -49,6 +52,9 @@ dependencies:
   
   # QR Code generation
   qr_flutter: ^4.1.0
+  
+  # QR Code scanning
+  mobile_scanner: ^6.0.2
 
 dev_dependencies:
   flutter_test:

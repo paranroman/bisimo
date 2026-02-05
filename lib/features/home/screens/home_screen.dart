@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
@@ -7,6 +8,7 @@ import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
 import '../../auth/services/profile_service.dart';
+import '../../../providers/auth_provider.dart';
 import '../widgets/typing_text_bubble.dart';
 import '../widgets/emotion_button.dart';
 
@@ -29,6 +31,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadProfile() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // If logged in as student, use displayName from AuthProvider
+    if (authProvider.isStudentMode) {
+      if (mounted) {
+        setState(() {
+          _namaPanggilan = authProvider.displayName;
+        });
+      }
+      return;
+    }
+    
+    // Otherwise, load from profile service (for Wali/Guru)
     final profile = await _profileService.getProfile();
     if (mounted && profile != null) {
       setState(() {

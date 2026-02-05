@@ -164,27 +164,43 @@ class StudentRepository {
   Future<StudentModel?> verifyStudentToken(String plainToken) async {
     try {
       final hashedToken = _hashToken(plainToken);
+      debugPrint('StudentRepository: Verifying token hash: ${hashedToken.substring(0, 10)}...');
 
       final snapshot = await _studentsCollection
           .where('loginTokenHash', isEqualTo: hashedToken)
           .limit(1)
           .get();
 
+      debugPrint('StudentRepository: Query returned ${snapshot.docs.length} documents');
+
       if (snapshot.docs.isEmpty) {
+        debugPrint('StudentRepository: No student found with this token');
         return null;
       }
 
-      // Update last login time
       final doc = snapshot.docs.first;
-      await doc.reference.update({
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      debugPrint('StudentRepository: Found student ${doc.id}');
+      
+      // Try to update last login time, but don't fail if it doesn't work
+      // (student might not be authenticated yet for Logical Auth)
+      try {
+        await doc.reference.update({
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        debugPrint('StudentRepository: Updated last login time');
+      } catch (updateError) {
+        // Ignore update errors - the student document was found, that's what matters
+        debugPrint('StudentRepository: Could not update last login time (expected for Logical Auth): $updateError');
+      }
 
       final data = doc.data();
       return StudentModel.fromMap(data, doc.id);
+    } on FirebaseException catch (e) {
+      debugPrint('StudentRepository: Firebase error verifying token - ${e.code}: ${e.message}');
+      rethrow;
     } catch (e) {
       debugPrint('StudentRepository: Error verifying token - $e');
-      return null;
+      rethrow;
     }
   }
 
@@ -195,6 +211,25 @@ class StudentRepository {
       return true;
     } catch (e) {
       debugPrint('StudentRepository: Error updating student - $e');
+      return false;
+    }
+  }
+
+  /// Update only the editable profile fields (for student self-updates)
+  /// This doesn't require Firebase Auth - uses studentId directly
+  Future<bool> updateStudentEditableProfile(
+    String studentId,
+    EditableProfile editableProfile,
+  ) async {
+    try {
+      await _studentsCollection.doc(studentId).update({
+        'editableProfile': editableProfile.toMap(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('StudentRepository: Updated editable profile for student $studentId');
+      return true;
+    } catch (e) {
+      debugPrint('StudentRepository: Error updating editable profile - $e');
       return false;
     }
   }

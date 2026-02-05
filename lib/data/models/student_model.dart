@@ -9,11 +9,7 @@ class EditableProfile {
   final List<String> hobbies;
   final String? favoriteColor;
 
-  const EditableProfile({
-    this.nickname,
-    this.hobbies = const [],
-    this.favoriteColor,
-  });
+  const EditableProfile({this.nickname, this.hobbies = const [], this.favoriteColor});
 
   factory EditableProfile.empty() => const EditableProfile();
 
@@ -27,18 +23,10 @@ class EditableProfile {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'nickname': nickname,
-      'hobbies': hobbies,
-      'favoriteColor': favoriteColor,
-    };
+    return {'nickname': nickname, 'hobbies': hobbies, 'favoriteColor': favoriteColor};
   }
 
-  EditableProfile copyWith({
-    String? nickname,
-    List<String>? hobbies,
-    String? favoriteColor,
-  }) {
+  EditableProfile copyWith({String? nickname, List<String>? hobbies, String? favoriteColor}) {
     return EditableProfile(
       nickname: nickname ?? this.nickname,
       hobbies: hobbies ?? this.hobbies,
@@ -53,11 +41,7 @@ class LockedProfile {
   final DateTime? birthDate;
   final Gender? gender;
 
-  const LockedProfile({
-    required this.fullName,
-    this.birthDate,
-    this.gender,
-  });
+  const LockedProfile({required this.fullName, this.birthDate, this.gender});
 
   factory LockedProfile.empty() => const LockedProfile(fullName: '');
 
@@ -67,10 +51,7 @@ class LockedProfile {
       fullName: data['fullName'] as String? ?? '',
       birthDate: (data['birthDate'] as Timestamp?)?.toDate(),
       gender: data['gender'] != null
-          ? Gender.values.firstWhere(
-              (e) => e.name == data['gender'],
-              orElse: () => Gender.male,
-            )
+          ? Gender.values.firstWhere((e) => e.name == data['gender'], orElse: () => Gender.male)
           : null,
     );
   }
@@ -83,11 +64,7 @@ class LockedProfile {
     };
   }
 
-  LockedProfile copyWith({
-    String? fullName,
-    DateTime? birthDate,
-    Gender? gender,
-  }) {
+  LockedProfile copyWith({String? fullName, DateTime? birthDate, Gender? gender}) {
     return LockedProfile(
       fullName: fullName ?? this.fullName,
       birthDate: birthDate ?? this.birthDate,
@@ -101,29 +78,19 @@ class StudentSettings {
   /// Allow Wali to access chat/emotion history
   final bool allowHistoryAccess;
 
-  const StudentSettings({
-    this.allowHistoryAccess = true,
-  });
+  const StudentSettings({this.allowHistoryAccess = true});
 
   factory StudentSettings.fromMap(Map<String, dynamic>? data) {
     if (data == null) return const StudentSettings();
-    return StudentSettings(
-      allowHistoryAccess: data['allowHistoryAccess'] as bool? ?? true,
-    );
+    return StudentSettings(allowHistoryAccess: data['allowHistoryAccess'] as bool? ?? true);
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'allowHistoryAccess': allowHistoryAccess,
-    };
+    return {'allowHistoryAccess': allowHistoryAccess};
   }
 
-  StudentSettings copyWith({
-    bool? allowHistoryAccess,
-  }) {
-    return StudentSettings(
-      allowHistoryAccess: allowHistoryAccess ?? this.allowHistoryAccess,
-    );
+  StudentSettings copyWith({bool? allowHistoryAccess}) {
+    return StudentSettings(allowHistoryAccess: allowHistoryAccess ?? this.allowHistoryAccess);
   }
 }
 
@@ -169,10 +136,10 @@ class StudentModel {
   });
 
   factory StudentModel.empty() => StudentModel(
-        id: '',
-        waliId: '',
-        lockedProfile: const LockedProfile(fullName: ''),
-      );
+    id: '',
+    waliId: '',
+    lockedProfile: const LockedProfile(fullName: ''),
+  );
 
   /// Create StudentModel from Firestore document
   factory StudentModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -214,25 +181,67 @@ class StudentModel {
       'lockedProfile': lockedProfile.toMap(),
       'settings': settings.toMap(),
       'schoolId': schoolId,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  /// Convert to plain Map for JSON serialization (no FieldValue)
+  /// Used for storing in SharedPreferences
+  Map<String, dynamic> toJsonMap() {
+    return {
+      'id': id,
+      'waliId': waliId,
+      'loginTokenHash': loginTokenHash,
+      'editableProfile': editableProfile.toMap(),
+      'lockedProfile': {
+        'fullName': lockedProfile.fullName,
+        'birthDate': lockedProfile.birthDate?.toIso8601String(),
+        'gender': lockedProfile.gender?.name,
+      },
+      'settings': settings.toMap(),
+      'schoolId': schoolId,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
+  /// Create StudentModel from JSON Map (from SharedPreferences)
+  factory StudentModel.fromJsonMap(Map<String, dynamic> data) {
+    return StudentModel(
+      id: data['id'] as String? ?? '',
+      waliId: data['waliId'] as String? ?? '',
+      loginTokenHash: data['loginTokenHash'] as String?,
+      editableProfile: EditableProfile.fromMap(data['editableProfile'] as Map<String, dynamic>?),
+      lockedProfile: LockedProfile(
+        fullName: (data['lockedProfile'] as Map<String, dynamic>?)?['fullName'] as String? ?? '',
+        birthDate: data['lockedProfile']?['birthDate'] != null
+            ? DateTime.parse(data['lockedProfile']['birthDate'] as String)
+            : null,
+        gender: data['lockedProfile']?['gender'] != null
+            ? Gender.values.firstWhere(
+                (e) => e.name == data['lockedProfile']['gender'],
+                orElse: () => Gender.male,
+              )
+            : null,
+      ),
+      settings: StudentSettings.fromMap(data['settings'] as Map<String, dynamic>?),
+      schoolId: data['schoolId'] as String?,
+      createdAt: data['createdAt'] != null ? DateTime.parse(data['createdAt'] as String) : null,
+      updatedAt: data['updatedAt'] != null ? DateTime.parse(data['updatedAt'] as String) : null,
+    );
   }
 
   /// Convert only editable profile to Firestore (for student updates)
   Map<String, dynamic> editableProfileToFirestore() {
-    return {
-      'editableProfile': editableProfile.toMap(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+    return {'editableProfile': editableProfile.toMap(), 'updatedAt': FieldValue.serverTimestamp()};
   }
 
   /// Convert only locked profile to Firestore (for wali updates)
   Map<String, dynamic> lockedProfileToFirestore() {
-    return {
-      'lockedProfile': lockedProfile.toMap(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+    return {'lockedProfile': lockedProfile.toMap(), 'updatedAt': FieldValue.serverTimestamp()};
   }
 
   StudentModel copyWith({
@@ -282,8 +291,7 @@ class StudentModel {
     if (birthDate == null) return 0;
     final now = DateTime.now();
     int age = now.year - birthDate.year;
-    if (now.month < birthDate.month ||
-        (now.month == birthDate.month && now.day < birthDate.day)) {
+    if (now.month < birthDate.month || (now.month == birthDate.month && now.day < birthDate.day)) {
       age--;
     }
     return age;
@@ -316,28 +324,13 @@ class CreateStudentResult {
   final StudentModel? student;
   final String? plainToken; // Plain token to show to Wali Kelas (NEVER store this)
 
-  CreateStudentResult._({
-    required this.isSuccess,
-    this.message,
-    this.student,
-    this.plainToken,
-  });
+  CreateStudentResult._({required this.isSuccess, this.message, this.student, this.plainToken});
 
-  factory CreateStudentResult.success({
-    required StudentModel student,
-    required String plainToken,
-  }) {
-    return CreateStudentResult._(
-      isSuccess: true,
-      student: student,
-      plainToken: plainToken,
-    );
+  factory CreateStudentResult.success({required StudentModel student, required String plainToken}) {
+    return CreateStudentResult._(isSuccess: true, student: student, plainToken: plainToken);
   }
 
   factory CreateStudentResult.failure({required String message}) {
-    return CreateStudentResult._(
-      isSuccess: false,
-      message: message,
-    );
+    return CreateStudentResult._(isSuccess: false, message: message);
   }
 }

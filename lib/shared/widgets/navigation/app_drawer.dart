@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../features/auth/services/auth_service.dart';
 import '../../../features/auth/services/profile_service.dart';
+import '../../../providers/auth_provider.dart';
 
 /// App Drawer - Sidebar Navigation
 class AppDrawer extends StatelessWidget {
@@ -15,10 +16,13 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isStudentMode = authProvider.isStudentMode;
+
     final isHome = currentRoute == AppRoutes.home;
     final isWaliDashboard = currentRoute == AppRoutes.waliDashboard;
-    final isEditProfile = currentRoute == AppRoutes.editProfile;
     final isSettings = currentRoute == AppRoutes.settings;
+    final isStudentProfile = currentRoute == AppRoutes.studentProfile;
 
     return Drawer(
       backgroundColor: Colors.transparent,
@@ -39,65 +43,69 @@ class AppDrawer extends StatelessWidget {
                 _buildHeader(),
                 const SizedBox(height: 40),
 
-                // Menu Items
-                _buildMenuButton(
-                  context: context,
-                  label: 'Beranda',
-                  backgroundColor: isHome ? const Color(0xFF41B37E) : Colors.white,
-                  textColor: isHome ? Colors.white : AppColors.textPrimary,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go(AppRoutes.home);
-                  },
-                ),
-                const SizedBox(height: 16),
+                // Menu Items - Different for Wali vs Murid
+                if (isStudentMode) ...[
+                  // STUDENT MENU
+                  _buildMenuButton(
+                    context: context,
+                    label: 'Beranda',
+                    backgroundColor: isHome ? const Color(0xFF41B37E) : Colors.white,
+                    textColor: isHome ? Colors.white : AppColors.textPrimary,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go(AppRoutes.home);
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                _buildMenuButton(
-                  context: context,
-                  label: 'Dashboard Wali Kelas',
-                  backgroundColor: isWaliDashboard ? const Color(0xFF41B37E) : Colors.white,
-                  textColor: isWaliDashboard ? Colors.white : AppColors.textPrimary,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push(AppRoutes.waliDashboard);
-                  },
-                ),
-                const SizedBox(height: 16),
+                  _buildMenuButton(
+                    context: context,
+                    label: 'Edit Profil',
+                    backgroundColor: isStudentProfile ? const Color(0xFF41B37E) : Colors.white,
+                    textColor: isStudentProfile ? Colors.white : AppColors.textPrimary,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push(AppRoutes.studentProfile);
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                _buildMenuButton(
-                  context: context,
-                  label: 'Edit Profil',
-                  backgroundColor: isEditProfile ? const Color(0xFF41B37E) : Colors.white,
-                  textColor: isEditProfile ? Colors.white : AppColors.textPrimary,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push(AppRoutes.editProfile);
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                _buildMenuButton(
-                  context: context,
-                  label: 'Riwayat Deteksi',
-                  subtitle: 'Akan Datang',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Coming soon
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Fitur akan segera hadir!',
-                          style: TextStyle(fontFamily: AppFonts.sfProRounded),
+                  _buildMenuButton(
+                    context: context,
+                    label: 'Riwayat Deteksi',
+                    subtitle: 'Akan Datang',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'Fitur akan segera hadir!',
+                            style: TextStyle(fontFamily: AppFonts.sfProRounded),
+                          ),
+                          backgroundColor: AppColors.textPrimary,
+                          behavior: SnackBarBehavior.floating,
                         ),
-                        backgroundColor: AppColors.textPrimary,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  isDisabled: true,
-                ),
-                const SizedBox(height: 16),
+                      );
+                    },
+                    isDisabled: true,
+                  ),
+                  const SizedBox(height: 16),
+                ] else ...[
+                  // WALI MENU
+                  _buildMenuButton(
+                    context: context,
+                    label: 'Dashboard',
+                    backgroundColor: isWaliDashboard ? const Color(0xFF41B37E) : Colors.white,
+                    textColor: isWaliDashboard ? Colors.white : AppColors.textPrimary,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go(AppRoutes.waliDashboard);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
+                // Pengaturan - same for both
                 _buildMenuButton(
                   context: context,
                   label: 'Pengaturan',
@@ -240,6 +248,11 @@ class AppDrawer extends StatelessWidget {
   Widget _buildLogoutButton(BuildContext context) {
     return GestureDetector(
       onTap: () async {
+        // Get references before any async operations
+        final navigator = Navigator.of(context);
+        final router = GoRouter.of(context);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        
         // Show confirmation dialog first
         final confirm = await showDialog<bool>(
           context: context,
@@ -271,17 +284,16 @@ class AppDrawer extends StatelessWidget {
           ),
         );
 
-        if (confirm == true && context.mounted) {
+        if (confirm == true) {
           // Close the drawer first
-          Navigator.pop(context);
+          navigator.pop();
 
-          // Logout
-          await AuthService().signOut();
+          // Logout using AuthProvider (handles both Wali and Student)
+          await authProvider.signOut();
           await ProfileService().clearProfile();
 
-          if (context.mounted) {
-            context.go(AppRoutes.welcome);
-          }
+          // Navigate to welcome
+          router.go(AppRoutes.welcome);
         }
       },
       child: Container(

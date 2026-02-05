@@ -11,6 +11,7 @@ import '../../features/emotion_detection/screens/camera_screen.dart';
 import '../../features/emotion_detection/screens/emotion_loading_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
+import '../../features/profile/screens/student_profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
 import '../../features/wali_kelas/screens/wali_dashboard_screen.dart';
 
@@ -89,6 +90,13 @@ class AppRouter {
         path: AppRoutes.editProfile,
         name: 'editProfile',
         builder: (context, state) => const EditProfileScreen(),
+      ),
+
+      // Student Profile Screen
+      GoRoute(
+        path: AppRoutes.studentProfile,
+        name: 'studentProfile',
+        builder: (context, state) => const StudentProfileScreen(),
       ),
 
       // Settings Screen

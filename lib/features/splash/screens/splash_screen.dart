@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/backgrounds/main_background.dart';
+import '../../../providers/auth_provider.dart';
 
 /// Splash Screen - First screen shown when app launches
 class SplashScreen extends StatefulWidget {
@@ -25,8 +27,24 @@ class _SplashScreenState extends State<SplashScreen> {
     // Simulate loading time
     await Future.delayed(const Duration(seconds: 3));
 
-    // Navigate to welcome screen
-    if (mounted) {
+    if (!mounted) return;
+
+    // Check authentication status
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.checkAuthStatus();
+
+    if (!mounted) return;
+
+    if (authProvider.isAuthenticated) {
+      if (authProvider.isStudentMode) {
+        // Student goes to Home (with Cimo)
+        context.go(AppRoutes.home);
+      } else {
+        // Wali goes to Dashboard
+        context.go(AppRoutes.waliDashboard);
+      }
+    } else {
+      // Not authenticated, go to welcome
       context.go(AppRoutes.welcome);
     }
   }

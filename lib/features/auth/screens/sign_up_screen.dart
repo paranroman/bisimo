@@ -6,9 +6,10 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
+import '../../../shared/widgets/icons/google_icon.dart';
 import '../services/auth_service.dart';
 
-/// Sign Up Screen - User registration page
+/// Sign Up Screen - Teacher registration page
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -24,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -68,11 +70,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (result.isSuccess) {
       if (mounted) {
         _showSnackBar('Akun berhasil dibuat!');
-        // Navigate to profile data screen to fill personal information
-        context.go(AppRoutes.profileData);
+        // Wali goes to Dashboard
+        context.go(AppRoutes.waliDashboard);
       }
     } else {
       _showSnackBar(result.message ?? 'Pendaftaran gagal');
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      final result = await _authService.signInWithGoogle();
+
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        // Wali goes to Dashboard
+        context.go(AppRoutes.waliDashboard);
+      } else {
+        _showSnackBar(result.message ?? 'Gagal mendaftar dengan Google');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Terjadi kesalahan. Silakan coba lagi.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+      }
     }
   }
 
@@ -197,6 +224,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 backgroundColor: const Color(0xFF41B37E),
                                 textColor: Colors.black,
                                 shadowColor: const Color(0xFF2D7D58),
+                                width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
+                                height: 52,
+                              ),
+                      ),
+                      const SizedBox(height: AppSizes.spaceL),
+
+                      // OR Divider
+                      Row(
+                        children: [
+                          const Expanded(child: Divider(color: AppColors.textHint)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingM),
+                            child: Text(
+                              'atau',
+                              style: TextStyle(
+                                fontFamily: AppFonts.sfProRounded,
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const Expanded(child: Divider(color: AppColors.textHint)),
+                        ],
+                      ),
+                      const SizedBox(height: AppSizes.spaceL),
+
+                      // Google Sign Up Button
+                      Center(
+                        child: _isGoogleLoading
+                            ? const CircularProgressIndicator(color: AppColors.primary)
+                            : PrimaryButton.google(
+                                onPressed: _handleGoogleSignUp,
+                                prefixIcon: const GoogleIcon(size: 20),
                                 width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
                                 height: 52,
                               ),
