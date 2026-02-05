@@ -1,6 +1,6 @@
 # Bisimo 🐰
 
-**Aplikasi Pendukung Kesehatan Mental Berbasis AI untuk Siswa Tunarungu**
+**Aplikasi Regulasi Emosi Berbasis LLM melalui Deteksi BISINDO untuk Siswa Tunarungu**
 
 ---
 
