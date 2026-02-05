@@ -11,9 +11,13 @@ class AppRoutes {
   static const String signIn = '/sign-in';
   static const String signUp = '/sign-up';
   static const String profileData = '/profile-data';
+  static const String studentLogin = '/student-login';
 
   // Main
   static const String home = '/home';
+
+  // Wali Kelas
+  static const String waliDashboard = '/wali-dashboard';
 
   // Emotion Detection
   static const String emotionDetection = '/emotion-detection';

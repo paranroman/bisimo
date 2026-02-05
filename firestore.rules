@@ -1,0 +1,149 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if current user is the owner of this document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if current user is a Wali (has wali role in custom claims)
+    function isWali() {
+      return isAuthenticated() && request.auth.token.role == 'wali';
+    }
+    
+    // Check if current user is a Student (has murid role in custom claims)
+    function isStudent() {
+      return isAuthenticated() && request.auth.token.role == 'murid';
+    }
+    
+    // Check if current user is the Wali of this student
+    function isWaliOfStudent() {
+      return isAuthenticated() && resource.data.waliId == request.auth.uid;
+    }
+    
+    // Check if current user is the Wali of the student being created
+    function isWaliOfNewStudent() {
+      return isAuthenticated() && request.resource.data.waliId == request.auth.uid;
+    }
+    
+    // Check if the student is accessing their own document
+    // Students are authenticated with custom tokens where uid = student doc id
+    function isStudentOwner() {
+      return isStudent() && request.auth.uid == resource.id;
+    }
+    
+    // Check if only editableProfile fields are being modified
+    function onlyEditableProfileChanged() {
+      let allowedFields = ['editableProfile', 'updatedAt'];
+      let changedFields = request.resource.data.diff(resource.data).affectedKeys();
+      return changedFields.hasOnly(allowedFields);
+    }
+    
+    // ============================================
+    // USERS COLLECTION (Wali Kelas)
+    // ============================================
+    
+    match /users/{userId} {
+      // Wali can only read their own user document
+      allow read: if isOwner(userId);
+      
+      // Wali can only create their own user document
+      allow create: if isOwner(userId);
+      
+      // Wali can only update their own user document
+      allow update: if isOwner(userId);
+      
+      // Wali can only delete their own user document
+      allow delete: if isOwner(userId);
+    }
+    
+    // ============================================
+    // STUDENTS COLLECTION
+    // ============================================
+    
+    match /students/{studentId} {
+      // READ RULES:
+      // - Wali can read students they own (waliId matches their uid)
+      // - Student can read their own document
+      allow read: if isWaliOfStudent() || isStudentOwner();
+      
+      // CREATE RULES:
+      // - Only Wali can create student documents
+      // - Can only create if waliId matches their uid
+      allow create: if isWaliOfNewStudent();
+      
+      // UPDATE RULES:
+      // - Wali can update all fields of students they own
+      // - Student can only update editableProfile of their own document
+      allow update: if isWaliOfStudent() || 
+                       (isStudentOwner() && onlyEditableProfileChanged());
+      
+      // DELETE RULES:
+      // - Only Wali can delete their students
+      allow delete: if isWaliOfStudent();
+      
+      // ============================================
+      // STUDENT SUBCOLLECTIONS
+      // ============================================
+      
+      // Chat History
+      match /chatHistory/{chatId} {
+        // Wali can read if student allows history access
+        allow read: if isStudentOwner() || 
+                       (isWaliOfStudent() && resource.data.get('allowWaliAccess', true) == true);
+        
+        // Only student can create/update their chat messages
+        allow create, update: if isStudentOwner();
+        
+        // Only Wali can delete chat history
+        allow delete: if isWaliOfStudent();
+      }
+      
+      // Emotion History
+      match /emotionHistory/{emotionId} {
+        // Wali can read if student allows history access
+        allow read: if isStudentOwner() || 
+                       (isWaliOfStudent() && get(/databases/$(database)/documents/students/$(studentId)).data.settings.allowHistoryAccess == true);
+        
+        // Only student can create emotion records
+        allow create: if isStudentOwner();
+        
+        // No one can update emotion history (immutable)
+        allow update: if false;
+        
+        // Only Wali can delete emotion history
+        allow delete: if isWaliOfStudent();
+      }
+    }
+    
+    // ============================================
+    // SCHOOLS COLLECTION (Future use)
+    // ============================================
+    
+    match /schools/{schoolId} {
+      // Only school admins can manage schools
+      // For now, allow authenticated users to read
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via Cloud Functions
+    }
+    
+    // ============================================
+    // DENY ALL OTHER ACCESS
+    // ============================================
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

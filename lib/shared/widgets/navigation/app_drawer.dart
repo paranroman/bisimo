@@ -16,6 +16,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHome = currentRoute == AppRoutes.home;
+    final isWaliDashboard = currentRoute == AppRoutes.waliDashboard;
     final isEditProfile = currentRoute == AppRoutes.editProfile;
     final isSettings = currentRoute == AppRoutes.settings;
 
@@ -47,6 +48,18 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     context.go(AppRoutes.home);
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildMenuButton(
+                  context: context,
+                  label: 'Dashboard Wali Kelas',
+                  backgroundColor: isWaliDashboard ? const Color(0xFF41B37E) : Colors.white,
+                  textColor: isWaliDashboard ? Colors.white : AppColors.textPrimary,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(AppRoutes.waliDashboard);
                   },
                 ),
                 const SizedBox(height: 16),

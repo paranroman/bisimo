@@ -9,6 +9,7 @@ import 'providers/emotion_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/cimo_provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/student_provider.dart';
 
 /// Bisimo App Root Widget
 class BisimoApp extends StatelessWidget {
@@ -23,6 +24,7 @@ class BisimoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => CimoProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider(create: (_) => StudentProvider()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(375, 812), // iPhone X design size

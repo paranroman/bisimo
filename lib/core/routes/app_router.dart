@@ -12,6 +12,7 @@ import '../../features/emotion_detection/screens/emotion_loading_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
+import '../../features/wali_kelas/screens/wali_dashboard_screen.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -58,6 +59,13 @@ class AppRouter {
 
       // Home Screen
       GoRoute(path: AppRoutes.home, name: 'home', builder: (context, state) => const HomeScreen()),
+
+      // Wali Kelas Dashboard
+      GoRoute(
+        path: AppRoutes.waliDashboard,
+        name: 'waliDashboard',
+        builder: (context, state) => const WaliDashboardScreen(),
+      ),
 
       // Camera Screen
       GoRoute(

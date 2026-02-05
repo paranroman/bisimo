@@ -43,6 +43,12 @@ dependencies:
     sdk: flutter
   intl: ^0.20.2
   url_launcher: ^6.3.2
+  
+  # Crypto for hashing tokens
+  crypto: ^3.0.3
+  
+  # QR Code generation
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
