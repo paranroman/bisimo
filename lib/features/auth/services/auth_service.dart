@@ -4,7 +4,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// Authentication Service - Handles all Firebase Auth operations
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -48,22 +47,23 @@ class AuthService {
   /// Sign In with Google
   Future<AuthResult> signInWithGoogle() async {
     try {
-      // Trigger the Google Sign-In flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      // Initialize GoogleSignIn (must be called once before authenticate)
+      await GoogleSignIn.instance.initialize();
 
-      if (googleUser == null) {
+      // Trigger the Google Sign-In flow
+      final GoogleSignInAccount googleUser;
+      try {
+        googleUser = await GoogleSignIn.instance.authenticate();
+      } on GoogleSignInException {
         // User cancelled the sign-in
         return AuthResult.failure(message: 'Login dibatalkan');
       }
 
-      // Obtain the auth details from the Google Sign-In
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      // Obtain the id token from the Google Sign-In
+      final googleAuth = googleUser.authentication;
 
-      // Create a new credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+      // Create a new credential (v7 only exposes idToken, not accessToken)
+      final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
 
       // Sign in to Firebase with the Google credential
       final userCredential = await _auth.signInWithCredential(credential);
@@ -81,7 +81,7 @@ class AuthService {
 
   /// Sign Out (including Google)
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    await GoogleSignIn.instance.signOut();
     await _auth.signOut();
   }
 

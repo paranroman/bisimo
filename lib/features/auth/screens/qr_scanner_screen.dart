@@ -87,7 +87,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           MobileScanner(
             controller: _controller,
             onDetect: _onDetect,
-            errorBuilder: (context, error, _) {
+            errorBuilder: (context, error) {
               return _buildErrorView(error.errorCode.name);
             },
           ),

@@ -33,8 +33,9 @@ class AssetPaths {
   static const String cimoSurprise = '$_cimo/CIMO SURPRISE.png';
   static const String cimoDisgust = '$_cimo/CIMO DISGUST.png';
 
-  // Model
+  // Models
   static const String emotionModel = '$_models/emotion_model.tflite';
+  static const String handLandmarkModel = '$_models/hand_landmark_full.tflite';
 
   /// Get Cimo image path by emotion name
   static String getCimoByEmotion(String emotion) {
