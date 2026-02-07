@@ -597,17 +597,16 @@ class _CameraScreenState extends State<CameraScreen> {
         debugPrint('[CameraScreen] ⚠️ No motion frames collected.');
       }
 
-      // TODO: Kirim face image + interpolated motion sequence ke cloud API
-      // final response = await http.post(
-      //   Uri.parse('https://your-cloud-endpoint/detect-emotion'),
-      //   body: jsonEncode({
-      //     'face_image': base64Encode(_processedFaceBytes ?? []),
-      //     'motion_sequence': interpolatedSequence,
-      //   }),
-      // );
-
+      // ── Navigate ke Loading Screen, bawa data mentah ──────────────
+      // Loading Screen akan memanggil cloud API selama animasi loading.
       if (mounted) {
-        context.push(AppRoutes.emotionDetection);
+        context.push(
+          AppRoutes.emotionDetection,
+          extra: <String, dynamic>{
+            'faceImageBytes': _processedFaceBytes, // Uint8List? JPEG 224×224
+            'motionSequence': interpolatedSequence, // List<List<double>>? (60×154)
+          },
+        );
       }
     } catch (e) {
       debugPrint('[CameraScreen] Error during send: $e');

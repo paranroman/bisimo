@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
@@ -76,14 +78,37 @@ class AppRouter {
       ),
 
       // Emotion Detection Loading Screen
+      // Menerima face image bytes + motion sequence dari CameraScreen
+      // dan memanggil cloud API selama animasi loading.
       GoRoute(
         path: AppRoutes.emotionDetection,
         name: 'emotionDetection',
-        builder: (context, state) => const EmotionLoadingScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return EmotionLoadingScreen(
+            faceImageBytes: extra?['faceImageBytes'] as Uint8List?,
+            motionSequence: extra?['motionSequence'] as List<List<double>>?,
+          );
+        },
       ),
 
       // Chat Screen
-      GoRoute(path: AppRoutes.chat, name: 'chat', builder: (context, state) => const ChatScreen()),
+      // Menerima hasil deteksi emosi dari EmotionLoadingScreen.
+      GoRoute(
+        path: AppRoutes.chat,
+        name: 'chat',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return ChatScreen(
+            faceEmotion: extra?['faceEmotion'] as String?,
+            faceConfidence: extra?['faceConfidence'] as double?,
+            motionEmotion: extra?['motionEmotion'] as String?,
+            motionConfidence: extra?['motionConfidence'] as double?,
+            finalEmotion: extra?['finalEmotion'] as String? ?? 'Neutral',
+            finalConfidence: extra?['finalConfidence'] as double? ?? 0.0,
+          );
+        },
+      ),
 
       // Edit Profile Screen
       GoRoute(

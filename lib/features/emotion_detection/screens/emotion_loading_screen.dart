@@ -1,12 +1,23 @@
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../services/emotion_api_service.dart';
 
-/// Loading Screen - Shows while detecting emotion (Placeholder)
+/// Loading Screen — Memanggil cloud API (face + motion) selama animasi loading,
+/// lalu navigasi ke ChatScreen dengan hasil emosi.
 class EmotionLoadingScreen extends StatefulWidget {
-  const EmotionLoadingScreen({super.key});
+  const EmotionLoadingScreen({super.key, this.faceImageBytes, this.motionSequence});
+
+  /// JPEG bytes foto wajah 224×224 (dari CameraScreen).
+  final Uint8List? faceImageBytes;
+
+  /// Motion sequence 60×154 (sudah di-interpolasi dari CameraScreen).
+  final List<List<double>>? motionSequence;
 
   @override
   State<EmotionLoadingScreen> createState() => _EmotionLoadingScreenState();
@@ -16,6 +27,8 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   late AnimationController _waveController;
   late AnimationController _dotsController;
   int _dotCount = 0;
+
+  final EmotionApiService _emotionApi = EmotionApiService();
 
   @override
   void initState() {
@@ -30,25 +43,94 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           setState(() {
-            _dotCount = (_dotCount + 1) % 4; // 0, 1, 2, 3 (0 = no dots)
+            _dotCount = (_dotCount + 1) % 4;
           });
           _dotsController.forward(from: 0);
         }
       });
     _dotsController.forward();
 
-    // Navigate to chat after loading animation
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go(AppRoutes.chat);
-      }
-    });
+    // ── Panggil cloud API & navigasi ke chat setelah selesai ──────────
+    _detectAndNavigate();
+  }
+
+  /// Panggil cloud API untuk face + motion secara paralel,
+  /// tunggu minimal 2 detik (agar animasi tetap terlihat),
+  /// lalu navigasi ke ChatScreen dengan hasil emosi.
+  Future<void> _detectAndNavigate() async {
+    final stopwatch = Stopwatch()..start();
+
+    MultimodalEmotionResult emotionResult;
+
+    try {
+      // ── Panggil kedua API secara paralel ──────────────────────────
+      final futures = await Future.wait([_detectFace(), _detectMotion()]);
+
+      final faceEmotion = futures[0] as EmotionResult?;
+      final motionEmotion = futures[1] as EmotionResult?;
+
+      // ── Gabungkan hasil — weighted fusion lokal (70% face + 30% motion) ─
+      emotionResult = MultimodalEmotionResult.fusionLocal(
+        faceEmotion: faceEmotion,
+        motionEmotion: motionEmotion,
+      );
+
+      debugPrint('[EmotionLoading] ✅ Emotion result: $emotionResult');
+    } catch (e) {
+      debugPrint('[EmotionLoading] ❌ API error: $e');
+      // Fallback → Neutral
+      emotionResult = MultimodalEmotionResult(
+        finalEmotion: EmotionResult(emotion: 'Neutral', confidence: 0.0),
+      );
+    }
+
+    // ── Pastikan animasi loading tampil minimal 2 detik ──────────────
+    stopwatch.stop();
+    final elapsed = stopwatch.elapsedMilliseconds;
+    if (elapsed < 2000) {
+      await Future.delayed(Duration(milliseconds: 2000 - elapsed));
+    }
+
+    // ── Navigasi ke ChatScreen dengan data emosi ─────────────────────
+    if (mounted) {
+      context.go(
+        AppRoutes.chat,
+        extra: <String, dynamic>{
+          'finalEmotion': emotionResult.finalEmotion.emotion,
+          'finalConfidence': emotionResult.finalEmotion.confidence,
+        },
+      );
+    }
+  }
+  // ...existing code...
+
+  /// Panggil cloud BiLSTM untuk deteksi emosi dari isyarat BISINDO.
+  Future<EmotionResult?> _detectMotion() async {
+    if (widget.motionSequence == null) return null;
+    try {
+      return await _emotionApi.detectMotionEmotion(widget.motionSequence!);
+    } catch (e) {
+      debugPrint('[EmotionLoading] Motion API error: $e');
+      return null;
+    }
+  }
+
+  /// Panggil cloud API untuk deteksi emosi dari wajah.
+  Future<EmotionResult?> _detectFace() async {
+    if (widget.faceImageBytes == null) return null;
+    try {
+      return await _emotionApi.detectFaceEmotion(widget.faceImageBytes!);
+    } catch (e) {
+      debugPrint('[EmotionLoading] Face API error: $e');
+      return null;
+    }
   }
 
   @override
   void dispose() {
     _waveController.dispose();
     _dotsController.dispose();
+    _emotionApi.dispose();
     super.dispose();
   }
 

@@ -39,6 +39,9 @@ dependencies:
 
   # Utils
   shared_preferences: ^2.3.3
+  
+  # HTTP Client
+  http: ^1.2.2
 
   # Icons
   cupertino_icons: ^1.0.8

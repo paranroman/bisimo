@@ -3,10 +3,39 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../emotion_detection/services/emotion_api_service.dart';
 
 /// Chat Screen - Obrolan bersama Cimo
+///
+/// Menerima hasil deteksi emosi dari 3 modalitas:
+/// 1. **Wajah** (EfficientNetB2) — dari CameraScreen → EmotionLoadingScreen
+/// 2. **Isyarat BISINDO** (BiLSTM) — dari CameraScreen → EmotionLoadingScreen
+/// 3. **Teks** (IndoBERT) — terdeteksi secara real-time setiap user mengirim pesan
+///
+/// Ketiga label emosi ini dikombinasikan menjadi konteks prompt untuk
+/// chatbot Mistral AI agar respons regulasi emosi relevan.
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({
+    super.key,
+    this.faceEmotion,
+    this.faceConfidence,
+    this.motionEmotion,
+    this.motionConfidence,
+    this.finalEmotion = 'Neutral',
+    this.finalConfidence = 0.0,
+  });
+
+  /// Label emosi dari wajah (EfficientNetB2). Null jika wajah tidak terdeteksi.
+  final String? faceEmotion;
+  final double? faceConfidence;
+
+  /// Label emosi dari isyarat BISINDO (BiLSTM). Null jika tangan tidak terdeteksi.
+  final String? motionEmotion;
+  final double? motionConfidence;
+
+  /// Label emosi akhir (weighted fusion 70% face + 30% motion).
+  final String finalEmotion;
+  final double finalConfidence;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -16,23 +45,80 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  final EmotionApiService _emotionApi = EmotionApiService();
+  bool _isWaitingResponse = false;
 
-  // Default to happy Cimo
-  final String _emotion = 'happy';
-  final String _emotionIndonesian = 'Kebahagiaan';
+  // Emosi terkini terdeteksi dari teks via IndoBERT
+  String _currentTextEmotion = '';
+
+  // ── Emosi dari kamera (face + motion) ──────────────────────────────
+  /// Emosi utama yang digunakan untuk UI & initial greeting.
+  /// Berasal dari `finalEmotion` (weighted fusion face + motion).
+  late String _emotion;
+  late String _emotionIndonesian;
+  bool _hasInitialGreeting = false;
 
   @override
   void initState() {
     super.initState();
-    // Add initial Cimo message
-    _addCimoInitialMessage();
+    if (widget.finalEmotion != 'Neutral' && widget.finalEmotion.isNotEmpty) {
+      _emotion = _mapEmotionToKey(widget.finalEmotion);
+      _emotionIndonesian = _mapEmotionToIndonesian(widget.finalEmotion);
+      _hasInitialGreeting = true;
+      _addCimoInitialMessage();
+    } else {
+      _emotion = 'neutral';
+      _emotionIndonesian = 'Netral';
+      _hasInitialGreeting = false;
+    }
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
+  // Move all method declarations above their first use
+  String _mapEmotionToKey(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'senang':
+        return 'happy';
+      case 'surprise':
+      case 'disgust':
+        return emotion.toLowerCase();
+      case 'sad':
+        return 'sad';
+      case 'marah':
+        return 'angry';
+      case 'takut':
+        return 'fear';
+      case 'jijik':
+        return 'disgust';
+      default:
+        return 'neutral';
+    }
+  }
+
+  String _mapEmotionToIndonesian(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'senang':
+      case 'happy':
+        return 'Kebahagiaan';
+      case 'sedih':
+      case 'sad':
+        return 'Kesedihan';
+      case 'marah':
+      case 'angry':
+        return 'Kemarahan';
+      case 'takut':
+      case 'fear':
+        return 'Ketakutan';
+      case 'terkejut':
+      case 'surprise':
+        return 'Keterkejutan';
+      case 'jijik':
+      case 'disgust':
+        return 'Kejijikan';
+      case 'neutral':
+        return 'Netral';
+      default:
+        return 'Netral';
+    }
   }
 
   String _getEmotionMessage(String emotion) {
@@ -51,7 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
       case 'disgust':
         return 'Kamu sedang merasakan kejijikan. Perasaanmu sangat valid. Ceritakan apa yang membuatmu merasa seperti ini.';
       default:
-        return 'Kamu sedang merasakan kesedihan. Perasaanmu sangat valid. Aku di sini untuk mendengarkanmu.';
+        return 'Hai! Aku Cimo. Ceritakan perasaanmu hari ini ya. Aku di sini untuk mendengarkanmu.';
     }
   }
 
@@ -63,31 +149,91 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _sendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add(ChatMessage(text: text, isUser: true, timestamp: DateTime.now()));
-    });
-
-    _messageController.clear();
-    _scrollToBottom();
-
-    // Simulate Cimo response (dummy for now)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            ChatMessage(text: _getDummyResponse(), isUser: false, timestamp: DateTime.now()),
-          );
-        });
-        _scrollToBottom();
-      }
-    });
+  String _buildEmotionContext() {
+    final buffer = StringBuffer();
+    buffer.writeln('[KONTEKS EMOSI]');
+    buffer.writeln('Kamu adalah Cimo, chatbot pendamping regulasi emosi untuk anak SD tunarungu.');
+    buffer.writeln('Gunakan bahasa sederhana, hangat, dan empatik.');
+    buffer.writeln();
+    if (_currentTextEmotion.isNotEmpty) {
+      buffer.writeln('- Emosi teks terakhir (IndoBERT): $_currentTextEmotion');
+    }
+    buffer.writeln('- Emosi gabungan: ${widget.finalEmotion}');
+    buffer.writeln('[/KONTEKS EMOSI]');
+    return buffer.toString();
   }
 
-  String _getDummyResponse() {
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || _isWaitingResponse) return;
+    setState(() {
+      _messages.add(ChatMessage(text: text, isUser: true, timestamp: DateTime.now()));
+      _isWaitingResponse = true;
+    });
+    _messageController.clear();
+    _scrollToBottom();
+    if (!_hasInitialGreeting) {
+      try {
+        final emotionResult = await _emotionApi.detectTextEmotion(text);
+        _currentTextEmotion = emotionResult.emotion;
+        _emotion = _mapEmotionToKey(_currentTextEmotion);
+        _emotionIndonesian = _mapEmotionToIndonesian(_currentTextEmotion);
+        _hasInitialGreeting = true;
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              text: _getEmotionMessage(_emotion),
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+        });
+      } catch (e) {
+        debugPrint('[ChatScreen] IndoBERT error: $e');
+        _currentTextEmotion = '';
+        _emotion = 'neutral';
+        _emotionIndonesian = 'Netral';
+        _hasInitialGreeting = true;
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              text: _getEmotionMessage(_emotion),
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+        });
+      }
+      return;
+    }
+    try {
+      final emotionResult = await _emotionApi.detectTextEmotion(text);
+      _currentTextEmotion = emotionResult.emotion;
+      debugPrint(
+        '[ChatScreen] IndoBERT result: '
+        '${emotionResult.emotion} (${(emotionResult.confidence * 100).toStringAsFixed(1)}%)',
+      );
+    } catch (e) {
+      debugPrint('[ChatScreen] IndoBERT error: $e');
+      _currentTextEmotion = '';
+    }
+    setState(() {
+      _messages.add(
+        ChatMessage(text: _getDummyResponse(text), isUser: false, timestamp: DateTime.now()),
+      );
+      _isWaitingResponse = false;
+    });
+    _scrollToBottom();
+  }
+
+  /// Dummy response — akan diganti dengan respons Mistral AI.
+  String _getDummyResponse(String userText) {
+    // Jika emosi teks terdeteksi, sebutkan di respons dummy
+    if (_currentTextEmotion.isNotEmpty) {
+      return 'Aku merasakan kamu sedang $_currentTextEmotion. '
+          'Perasaanmu sangat valid. Ceritakan lebih lanjut ya.';
+    }
+
     final responses = [
       'Aku mengerti perasaanmu. Terima kasih sudah berbagi denganku.',
       'Ceritakan lebih lanjut, aku di sini untuk mendengarkanmu.',
