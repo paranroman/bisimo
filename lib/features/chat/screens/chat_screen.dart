@@ -68,7 +68,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _addCimoInitialMessage();
     } else {
       _emotion = 'neutral';
-      _emotionIndonesian = 'Netral';
+      _emotionIndonesian = 'Neutral';
       _hasInitialGreeting = false;
     }
   }
@@ -115,9 +115,9 @@ class _ChatScreenState extends State<ChatScreen> {
       case 'disgust':
         return 'Kejijikan';
       case 'neutral':
-        return 'Netral';
+        return 'Neutral';
       default:
-        return 'Netral';
+        return 'Neutral';
     }
   }
 
@@ -192,7 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
         debugPrint('[ChatScreen] IndoBERT error: $e');
         _currentTextEmotion = '';
         _emotion = 'neutral';
-        _emotionIndonesian = 'Netral';
+        _emotionIndonesian = 'Neutral';
         _hasInitialGreeting = true;
         setState(() {
           _messages.add(

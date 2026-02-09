@@ -152,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: TypingTextBubble(
                                 userName: _namaPanggilan.isNotEmpty ? _namaPanggilan : 'Teman',
                                 greetingPrefix: 'Halo, ',
-                                greetingSuffix: '!\n',
+                                greetingSuffix: ' !\n',
                                 bodyText: 'Cimo ingin mendengarmu di sini,\n',
                                 questionText: 'bagaimana perasaanmu?',
                               ),
@@ -178,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Text Story Link
                     GestureDetector(
                       onTap: () {
-                        // TODO: Navigate to chat when implemented
+                        context.push(AppRoutes.chat);
                       },
                       child: const Text(
                         'Bercerita dengan teks.',

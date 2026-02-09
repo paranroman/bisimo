@@ -32,7 +32,7 @@ class EmotionModel {
       case EmotionType.disgust:
         return 'Jijik';
       case EmotionType.neutral:
-        return 'Netral';
+        return 'Neutral';
     }
   }
 

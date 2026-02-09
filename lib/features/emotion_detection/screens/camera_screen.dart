@@ -659,27 +659,39 @@ class _CameraScreenState extends State<CameraScreen> {
           return Stack(
             children: [
               // ── Camera Preview ──────────────────────────────────────
+              // ── Camera Preview ──────────────────────────────────────
               Positioned.fill(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 2),
-                  color: Colors.black,
-                  child: _isCameraInitialized && _cameraController != null
-                      ? Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            CameraPreview(_cameraController!),
-                            if (_faceDetected && _faceBoundingBox != null)
-                              CustomPaint(
-                                painter: _FaceBoundingBoxPainter(
-                                  boundingBox: _faceBoundingBox!,
-                                  imageWidth: _imageWidth,
-                                  imageHeight: _imageHeight,
-                                  sensorOrientation: _sensorOrientation,
-                                ),
+                child: _isCameraInitialized && _cameraController != null
+                    ? OverflowBox(
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _cameraController!.value.previewSize?.height ?? 1,
+                      height: _cameraController!.value.previewSize?.width ?? 1,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CameraPreview(_cameraController!),
+                          if (_faceDetected && _faceBoundingBox != null)
+                            CustomPaint(
+                              painter: _FaceBoundingBoxPainter(
+                                boundingBox: _faceBoundingBox!,
+                                imageWidth: _imageWidth,
+                                imageHeight: _imageHeight,
+                                sensorOrientation: _sensorOrientation,
                               ),
-                          ],
-                        )
-                      : const Center(child: CircularProgressIndicator(color: Color(0xFF41B37E))),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                    : Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF41B37E)),
+                  ),
                 ),
               ),
 
