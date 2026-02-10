@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../data/models/chat_message_model.dart';
 import '../features/chat/services/chat_service.dart';
 import '../features/emotion_detection/services/emotion_api_service.dart';
@@ -25,6 +26,18 @@ class ChatProvider extends ChangeNotifier {
     _setTyping(true);
 
     try {
+      // Tunggu Firebase Auth restore user session (max 5 detik)
+      if (FirebaseAuth.instance.currentUser == null) {
+        debugPrint('[ChatProvider] ⏳ Menunggu Firebase Auth ready...');
+        for (int i = 0; i < 10; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (FirebaseAuth.instance.currentUser != null) break;
+        }
+        if (FirebaseAuth.instance.currentUser == null) {
+          throw Exception('User belum login.');
+        }
+      }
+
       final bool useCamera = emotionResult != null;
       final response = await _chatService.startSession(
         useCamera: useCamera,
@@ -38,7 +51,10 @@ class ChatProvider extends ChangeNotifier {
         _addCimoMessage(initialMessage);
       }
     } catch (e) {
-      final errorMsg = 'Gagal memulai sesi chat. Coba lagi nanti.';
+      debugPrint('[ChatProvider] ❌ startChatSession error: $e');
+      final errorMsg = e.toString().contains('belum login')
+          ? 'Sesi login habis. Silakan login ulang.'
+          : 'Gagal memulai sesi chat. Coba lagi nanti.';
       _setError(errorMsg);
       _addCimoMessage(errorMsg, status: MessageStatus.failed);
     } finally {

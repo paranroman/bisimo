@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,13 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   late AnimationController _waveController;
   late AnimationController _dotsController;
   int _dotCount = 0;
+  bool _hasNavigated = false;
+
+  /// Timeout: jika API tidak selesai dalam 30 detik, navigasi ke error screen.
+  static const int _loadingTimeoutSeconds = 30;
+  Timer? _loadingTimeoutTimer;
+  Timer? _countdownTimer;
+  int _secondsRemaining = _loadingTimeoutSeconds;
 
   late final EmotionApiService _emotionApi;
 
@@ -48,7 +56,42 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
       });
     _dotsController.forward();
 
-    _detectAndNavigate();
+    // Defer navigation to after the first frame to avoid
+    // "setState() called during build" error.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startLoadingTimeout();
+      _detectAndNavigate();
+    });
+  }
+
+  /// Start loading timeout — jika deteksi gagal dalam _loadingTimeoutSeconds,
+  /// otomatis navigasi ke error screen.
+  void _startLoadingTimeout() {
+    _secondsRemaining = _loadingTimeoutSeconds;
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _hasNavigated) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _secondsRemaining = _loadingTimeoutSeconds - timer.tick;
+      });
+    });
+
+    _loadingTimeoutTimer = Timer(Duration(seconds: _loadingTimeoutSeconds), () {
+      _countdownTimer?.cancel();
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        debugPrint('[EmotionLoading] ⏰ Timeout! Navigasi ke error screen.');
+        context.go(AppRoutes.detectionError, extra: DetectionErrorType.apiError);
+      }
+    });
+  }
+
+  void _cancelLoadingTimeout() {
+    _loadingTimeoutTimer?.cancel();
+    _countdownTimer?.cancel();
   }
 
   Future<void> _detectAndNavigate() async {
@@ -57,14 +100,18 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
     // Validate required data — navigate to error screen if missing
     if (widget.faceImageBytes == null) {
       debugPrint('[EmotionLoading] ❌ Missing face data.');
-      if (mounted) {
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        _cancelLoadingTimeout();
         context.go(AppRoutes.detectionError, extra: DetectionErrorType.faceNotDetected);
       }
       return;
     }
     if (widget.motionSequence == null) {
       debugPrint('[EmotionLoading] ❌ Missing motion data.');
-      if (mounted) {
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        _cancelLoadingTimeout();
         context.go(AppRoutes.detectionError, extra: DetectionErrorType.handNotDetected);
       }
       return;
@@ -84,8 +131,9 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
         await Future.delayed(Duration(milliseconds: 2000 - elapsed));
       }
 
-      if (mounted) {
-        // Pass the entire result object to the chat screen
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        _cancelLoadingTimeout();
         context.go(AppRoutes.chat, extra: result);
       }
     } catch (e) {
@@ -95,8 +143,9 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
       if (elapsed < 2000) {
         await Future.delayed(Duration(milliseconds: 2000 - elapsed));
       }
-      // On error, navigate to detection error screen
-      if (mounted) {
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        _cancelLoadingTimeout();
         context.go(AppRoutes.detectionError, extra: DetectionErrorType.apiError);
       }
     }
@@ -104,6 +153,7 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
 
   @override
   void dispose() {
+    _cancelLoadingTimeout();
     _waveController.dispose();
     _dotsController.dispose();
     super.dispose();
@@ -168,6 +218,16 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Waktu tersisa: ${_secondsRemaining}s',
+              style: TextStyle(
+                fontFamily: AppFonts.lexend,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: _secondsRemaining <= 10 ? Colors.red.shade400 : Colors.grey.shade500,
+              ),
             ),
           ],
         ),
