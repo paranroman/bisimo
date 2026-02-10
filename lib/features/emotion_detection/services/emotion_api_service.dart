@@ -3,114 +3,314 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
-/// Service untuk mengirim data emosi ke Google Cloud dan menerima label emosi.
+/// Service untuk komunikasi dengan Chatbot API Gateway.
+///
+/// ## Arsitektur (aman):
+/// ```
+/// Flutter ──Firebase Token──→ Chatbot Gateway (satu-satunya endpoint)
+///                                ├──→ IndoBERT       (API key di server)
+///                                ├──→ EfficientNetB2 (API key di server)
+///                                ├──→ BiLSTM         (API key di server)
+///                                └──→ Mistral AI     (API key di server)
+/// ```
+///
+/// **Nol API key di Flutter.** Semua key tersimpan aman di Cloud Run env vars.
+///
+/// ## Setup:
+///
+/// ```dart
+// / final service = EmotionApiService(
+// /   chatbotUrl: 'https://mistral-chatbot-xxxxx.run.app',
+/// );
+/// ```
+
+final service = EmotionApiService(
+  chatbotUrl: 'https://mistral-chatbot-o4xbdy3cxq-et.a.run.app',
+);
+
 class EmotionApiService {
-  EmotionApiService({http.Client? httpClient, String? apiKey})
-      : _client = httpClient ?? http.Client(),
-        _apiKey = apiKey;
+  EmotionApiService({
+    required String chatbotUrl,
+    http.Client? httpClient,
+  })  : _chatbotUrl = chatbotUrl,
+        _client = httpClient ?? http.Client();
 
-  // ══════════════════════════════════════════════════════════════════════
-  //  API Endpoints
-  // ══════════════════════════════════════════════════════════════════════
+  /// URL Chatbot API Gateway — satu-satunya endpoint.
+  final String _chatbotUrl;
 
-  static const String _faceEmotionUrl =
-      'https://face-emotion-api-845897442315.asia-southeast2.run.app/predict-face';
-
-  static const String _motionEmotionUrl =
-      'https://bisindo-model-845897442315.asia-southeast2.run.app/predict-motion';
-
-  static const String _textEmotionUrl =
-      'https://indobert-model-845897442315.asia-southeast2.run.app/predict-text';
-
-  static const String _combinedEmotionUrl =
-      'https://mistral-chatbot-845897442315.asia-southeast2.run.app/'; // Opsional
-
-  final String? _apiKey;
   final http.Client _client;
-  static const Duration _timeout = Duration(seconds: 45);
 
-  // ────────────────────────────────────────────────────────────────────
-  //  API Methods
-  // ────────────────────────────────────────────────────────────────────
+  /// Session ID aktif.
+  String? _sessionId;
 
+  /// Getter untuk session ID saat ini.
+  String? get sessionId => _sessionId;
+
+  static const Duration _timeout = Duration(seconds: 30);
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  Firebase Auth Helper
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Dapatkan Firebase ID Token dari user yang sedang login.
+  Future<String> _getFirebaseToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw EmotionApiException('User belum login. Silakan login terlebih dulu.');
+    }
+    final token = await user.getIdToken();
+    if (token == null) {
+      throw EmotionApiException('Gagal mendapatkan Firebase token.');
+    }
+    return token;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  1. TEKS → IndoBERT (via Chatbot proxy)
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Kirim teks ke IndoBERT melalui Chatbot gateway.
   Future<EmotionResult> detectTextEmotion(String text) async {
     if (text.trim().isEmpty) {
       return EmotionResult(emotion: 'Neutral', confidence: 0.0);
     }
-    return _postJson(url: _textEmotionUrl, body: {'text': text}, label: 'TextEmotion');
+    return _postAndParse(
+      path: '/predict-text',
+      body: {'text': text},
+      label: 'TextEmotion',
+    );
   }
 
+  /// Alias — backward compatibility.
+  Future<EmotionResult> detectEmotion(String text) => detectTextEmotion(text);
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  2. WAJAH → EfficientNetB2 (via Chatbot proxy)
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Kirim foto wajah (JPEG bytes 224×224) melalui Chatbot gateway.
   Future<EmotionResult> detectFaceEmotion(Uint8List faceImageBytes) async {
     final base64Image = base64Encode(faceImageBytes);
-    return _postJson(
-        url: _faceEmotionUrl, body: {'image_base64': base64Image}, label: 'FaceEmotion');
+    return _postAndParse(
+      path: '/predict-face',
+      body: {'image_base64': base64Image},
+      label: 'FaceEmotion',
+    );
   }
 
-  Future<EmotionResult> detectMotionEmotion(List<List<double>> motionSequence) async {
-    return _postJson(
-      url: _motionEmotionUrl,
+  // ══════════════════════════════════════════════════════════════════════
+  //  3. ISYARAT BISINDO → BiLSTM (via Chatbot proxy)
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Kirim motion sequence (60 frames × 154 features) melalui Chatbot gateway.
+  Future<EmotionResult> detectMotionEmotion(
+      List<List<double>> motionSequence,
+      ) async {
+    return _postAndParse(
+      path: '/predict-motion',
       body: {'data': motionSequence},
       label: 'MotionEmotion',
     );
   }
 
-  Future<MultimodalEmotionResult> detectCombinedEmotion({
-    Uint8List? faceImageBytes,
-    List<List<double>>? motionSequence,
-  }) async {
-    final body = <String, dynamic>{};
-    if (faceImageBytes != null) {
-      body['image_base64'] = base64Encode(faceImageBytes);
-    }
-    if (motionSequence != null) {
-      body['data'] = motionSequence;
-    }
+  // ══════════════════════════════════════════════════════════════════════
+  //  4. SKENARIO 1 — COMBINED (kamera) → /predict-combined
+  // ══════════════════════════════════════════════════════════════════════
 
-    final responseBody = await _postRaw(url: _combinedEmotionUrl, body: body, label: 'CombinedEmotion');
-    return _parseCombinedResponse(responseBody);
+  /// Kirim face + motion untuk prediksi gabungan + mulai session chatbot.
+  Future<CombinedEmotionResult> detectCombinedEmotion({
+    required Uint8List faceImageBytes,
+    required List<List<double>> motionSequence,
+  }) async {
+    final base64Image = base64Encode(faceImageBytes);
+
+    final responseBody = await _postRaw(
+      path: '/predict-combined',
+      body: {
+        'face_image': base64Image,
+        'motion_landmarks': motionSequence,
+      },
+      label: 'CombinedEmotion',
+    );
+
+    final json = jsonDecode(responseBody) as Map<String, dynamic>;
+    final facePred = json['face_prediction'] as Map<String, dynamic>;
+    final motionPred = json['motion_prediction'] as Map<String, dynamic>;
+
+    final result = CombinedEmotionResult(
+      sessionId: json['session_id'] as String,
+      faceEmotion: EmotionResult(
+        emotion: facePred['label'] as String,
+        confidence: (facePred['confidence'] as num).toDouble(),
+      ),
+      motionEmotion: EmotionResult(
+        emotion: motionPred['label'] as String,
+        confidence: (motionPred['confidence'] as num).toDouble(),
+      ),
+      finalEmotion: EmotionResult(
+        emotion: json['combined_label'] as String,
+        confidence: (json['final_confidence'] as num).toDouble(),
+      ),
+      weightFace: (json['weight_face'] as num).toDouble(),
+      weightMotion: (json['weight_motion'] as num).toDouble(),
+      greeting: json['greeting'] as String,
+    );
+
+    _sessionId = result.sessionId;
+    return result;
   }
 
-  // ────────────────────────────────────────────────────────────────────
-  //  HTTP Helpers
-  // ────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════
+  //  5. SKENARIO 2 — START SESSION (tanpa kamera)
+  // ══════════════════════════════════════════════════════════════════════
 
-  Future<EmotionResult> _postJson({
-    required String url,
+  /// Mulai session chatbot tanpa kamera.
+  Future<SessionStartResult> startSession() async {
+    final responseBody = await _postRaw(
+      path: '/session/start',
+      body: {},
+      label: 'StartSession',
+    );
+
+    final json = jsonDecode(responseBody) as Map<String, dynamic>;
+    final result = SessionStartResult(
+      sessionId: json['session_id'] as String,
+      greeting: json['greeting'] as String,
+    );
+
+    _sessionId = result.sessionId;
+    return result;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  6. CHAT
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Kirim pesan chat ke Mistral.
+  /// Harus panggil [detectCombinedEmotion] atau [startSession] dulu.
+  Future<ChatResult> chat(String message) async {
+    if (_sessionId == null) {
+      throw EmotionApiException(
+        'Belum ada session aktif. '
+            'Panggil detectCombinedEmotion() atau startSession() terlebih dulu.',
+      );
+    }
+
+    final responseBody = await _postRaw(
+      path: '/chat',
+      body: {
+        'session_id': _sessionId,
+        'message': message,
+      },
+      label: 'Chat',
+    );
+
+    final json = jsonDecode(responseBody) as Map<String, dynamic>;
+    final textPred = json['text_prediction'] as Map<String, dynamic>;
+
+    return ChatResult(
+      sessionId: json['session_id'] as String,
+      userMessage: json['user_message'] as String,
+      textPrediction: EmotionResult(
+        emotion: textPred['label'] as String,
+        confidence: (textPred['confidence'] as num).toDouble(),
+      ),
+      assistantReply: json['assistant_reply'] as String,
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  7. END SESSION
+  // ══════════════════════════════════════════════════════════════════════
+
+  Future<void> endSession() async {
+    if (_sessionId == null) return;
+    try {
+      final token = await _getFirebaseToken();
+      final uri = Uri.parse('$_chatbotUrl/session/$_sessionId');
+      await _client.delete(uri, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      }).timeout(_timeout);
+    } catch (e) {
+      debugPrint('[EndSession] ⚠️ Failed: $e');
+    } finally {
+      _sessionId = null;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  HTTP Helpers
+  // ══════════════════════════════════════════════════════════════════════
+
+  Future<EmotionResult> _postAndParse({
+    required String path,
     required Map<String, dynamic> body,
     required String label,
   }) async {
-    final responseBody = await _postRaw(url: url, body: body, label: label);
-    return _parseSingleResponse(responseBody);
+    final responseBody = await _postRaw(path: path, body: body, label: label);
+    final json = jsonDecode(responseBody) as Map<String, dynamic>;
+
+    return EmotionResult(
+      emotion: json['label'] as String? ?? 'Neutral',
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
+      allPredictions: json.containsKey('all_scores')
+          ? (json['all_scores'] as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, (v as num).toDouble()))
+          : null,
+    );
   }
 
+  /// Semua request → satu URL (chatbot) + Firebase token.
   Future<String> _postRaw({
-    required String url,
+    required String path,
     required Map<String, dynamic> body,
     required String label,
   }) async {
     try {
-      final uri = Uri.parse(url);
+      final token = await _getFirebaseToken();
+      final uri = Uri.parse('$_chatbotUrl$path');
+
       final headers = <String, String>{
         'Content-Type': 'application/json',
-        if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+        'Authorization': 'Bearer $token',
       };
+
       final encodedBody = jsonEncode(body);
 
       debugPrint('[$label] 📤 POST $uri');
       if (encodedBody.length < 500) {
         debugPrint('[$label] Body: $encodedBody');
       } else {
-        debugPrint('[$label] Body: ${encodedBody.substring(0, 200)}... (${encodedBody.length} chars)');
+        debugPrint(
+          '[$label] Body: ${encodedBody.substring(0, 200)}... '
+              '(${encodedBody.length} chars)',
+        );
       }
 
-      final response = await _client.post(uri, headers: headers, body: encodedBody).timeout(_timeout);
+      final response = await _client
+          .post(uri, headers: headers, body: encodedBody)
+          .timeout(_timeout);
 
       debugPrint('[$label] 📥 Status: ${response.statusCode}');
       debugPrint('[$label] Response: ${response.body}');
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.statusCode == 200) {
         return response.body;
+      } else if (response.statusCode == 401) {
+        throw EmotionApiException(
+          'Unauthorized. Silakan login ulang.',
+          statusCode: 401,
+          responseBody: response.body,
+        );
+      } else if (response.statusCode == 404) {
+        throw EmotionApiException(
+          'Session not found. Mulai session baru.',
+          statusCode: 404,
+          responseBody: response.body,
+        );
       } else {
         throw EmotionApiException(
           'Server error: ${response.statusCode}',
@@ -121,122 +321,68 @@ class EmotionApiService {
     } on EmotionApiException {
       rethrow;
     } catch (e) {
-      debugPrint('[$label] 💥 Error: $e');
-      throw EmotionApiException('Network or timeout error: $e');
+      throw EmotionApiException('Network error: $e');
     }
   }
 
-  // ────────────────────────────────────────────────────────────────────
-  //  Response Parsers
-  // ────────────────────────────────────────────────────────────────────
-
-  EmotionResult _parseSingleResponse(String responseBody) {
-    try {
-      final json = jsonDecode(responseBody) as Map<String, dynamic>;
-      final emotion = json['emotion'] as String? ?? 'Neutral';
-      final confidence = (json['confidence'] as num?)?.toDouble() ?? 0.0;
-
-      return EmotionResult(emotion: emotion, confidence: confidence);
-    } catch (e) {
-      throw EmotionApiException('Failed to parse response: $e', responseBody: responseBody);
-    }
+  void dispose() {
+    _client.close();
   }
-
-  MultimodalEmotionResult _parseCombinedResponse(String responseBody) {
-    try {
-      final json = jsonDecode(responseBody) as Map<String, dynamic>;
-
-      EmotionResult? parseOptional(String key) {
-        if (!json.containsKey(key) || json[key] == null) return null;
-        final sub = json[key] as Map<String, dynamic>;
-        return EmotionResult(
-          emotion: sub['emotion'] as String? ?? 'Neutral',
-          confidence: (sub['confidence'] as num?)?.toDouble() ?? 0.0,
-        );
-      }
-
-      final finalEmotion = parseOptional('final_emotion') ??
-                           parseOptional('face_emotion') ??
-                           EmotionResult(emotion: 'Neutral', confidence: 0.0);
-
-      return MultimodalEmotionResult(
-        faceEmotion: parseOptional('face_emotion'),
-        motionEmotion: parseOptional('motion_emotion'),
-        finalEmotion: finalEmotion,
-      );
-    } catch (e) {
-      throw EmotionApiException('Failed to parse combined response: $e', responseBody: responseBody);
-    }
-  }
-
-  void dispose() => _client.close();
 }
 
-// ══════════════════════════════════════════════════════════════════════════
-//  Data Classes & Exceptions
-// ══════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
+//  Data Classes
+// ══════════════════════════════════════════════════════════════════════════════
 
 class EmotionResult {
+  EmotionResult({required this.emotion, required this.confidence, this.allPredictions});
   final String emotion;
   final double confidence;
-  EmotionResult({required this.emotion, required this.confidence});
+  final Map<String, double>? allPredictions;
 
   @override
-  String toString() => 'EmotionResult(emotion: $emotion, confidence: ${confidence.toStringAsFixed(3)})';
+  String toString() => 'EmotionResult($emotion, ${confidence.toStringAsFixed(3)})';
 }
 
-class MultimodalEmotionResult {
-  final EmotionResult? faceEmotion;
-  final EmotionResult? motionEmotion;
-  final EmotionResult finalEmotion;
-
-  MultimodalEmotionResult({
-    this.faceEmotion,
-    this.motionEmotion,
-    required this.finalEmotion,
+class CombinedEmotionResult {
+  CombinedEmotionResult({
+    required this.sessionId, required this.faceEmotion,
+    required this.motionEmotion, required this.finalEmotion,
+    required this.weightFace, required this.weightMotion,
+    required this.greeting,
   });
+  final String sessionId;
+  final EmotionResult faceEmotion;
+  final EmotionResult motionEmotion;
+  final EmotionResult finalEmotion;
+  final double weightFace;
+  final double weightMotion;
+  final String greeting;
+}
 
-  static MultimodalEmotionResult fusionLocal({
-    EmotionResult? faceEmotion,
-    EmotionResult? motionEmotion,
-  }) {
-    if (faceEmotion == null && motionEmotion == null) {
-      return MultimodalEmotionResult(finalEmotion: EmotionResult(emotion: 'Neutral', confidence: 0.0));
-    }
-    if (faceEmotion != null && motionEmotion == null) {
-      return MultimodalEmotionResult(faceEmotion: faceEmotion, finalEmotion: faceEmotion);
-    }
-    if (faceEmotion == null && motionEmotion != null) {
-      return MultimodalEmotionResult(motionEmotion: motionEmotion, finalEmotion: motionEmotion);
-    }
+class SessionStartResult {
+  SessionStartResult({required this.sessionId, required this.greeting});
+  final String sessionId;
+  final String greeting;
+}
 
-    const double faceWeight = 0.7;
-    const double motionWeight = 0.3;
-    final faceScore = faceEmotion!.confidence * faceWeight;
-    final motionScore = motionEmotion!.confidence * motionWeight;
-    final finalResult = faceScore >= motionScore ? faceEmotion : motionEmotion;
-
-    return MultimodalEmotionResult(
-      faceEmotion: faceEmotion,
-      motionEmotion: motionEmotion,
-      finalEmotion: EmotionResult(
-        emotion: finalResult.emotion,
-        confidence: faceScore + motionScore, // This might exceed 1.0, consider clamping or normalizing
-      ),
-    );
-  }
-
-  @override
-  String toString() => 'MultimodalEmotionResult(face: $faceEmotion, motion: $motionEmotion, final: $finalEmotion)';
+class ChatResult {
+  ChatResult({
+    required this.sessionId, required this.userMessage,
+    required this.textPrediction, required this.assistantReply,
+  });
+  final String sessionId;
+  final String userMessage;
+  final EmotionResult textPrediction;
+  final String assistantReply;
 }
 
 class EmotionApiException implements Exception {
+  EmotionApiException(this.message, {this.statusCode, this.responseBody});
   final String message;
   final int? statusCode;
   final String? responseBody;
 
-  EmotionApiException(this.message, {this.statusCode, this.responseBody});
-
   @override
-  String toString() => 'EmotionApiException: $message (Status: $statusCode)';
+  String toString() => 'EmotionApiException: $message';
 }

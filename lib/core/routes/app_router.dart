@@ -16,6 +16,7 @@ import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
 import '../../features/wali_kelas/screens/wali_dashboard_screen.dart';
+import '../../features/emotion_detection/services/emotion_api_service.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -93,20 +94,16 @@ class AppRouter {
       ),
 
       // Chat Screen
-      // Menerima hasil deteksi emosi dari EmotionLoadingScreen.
+      // Menerima CombinedEmotionResult dari EmotionLoadingScreen (dengan kamera)
+      // atau null jika langsung dari Home (mode text-only).
       GoRoute(
         path: AppRoutes.chat,
         name: 'chat',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          return ChatScreen(
-            faceEmotion: extra?['faceEmotion'] as String?,
-            faceConfidence: extra?['faceConfidence'] as double?,
-            motionEmotion: extra?['motionEmotion'] as String?,
-            motionConfidence: extra?['motionConfidence'] as double?,
-            finalEmotion: extra?['finalEmotion'] as String? ?? 'Neutral',
-            finalConfidence: extra?['finalConfidence'] as double? ?? 0.0,
-          );
+          // extra bisa berupa CombinedEmotionResult (dari kamera)
+          // atau null (text-only dari Home)
+          final emotionResult = state.extra as CombinedEmotionResult?;
+          return ChatScreen(emotionResult: emotionResult);
         },
       ),
 

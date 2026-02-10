@@ -152,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: TypingTextBubble(
                                 userName: _namaPanggilan.isNotEmpty ? _namaPanggilan : 'Teman',
                                 greetingPrefix: 'Halo, ',
-                                greetingSuffix: ' !\n',
+                                greetingSuffix: '!\n',
                                 bodyText: 'Cimo ingin mendengarmu di sini,\n',
                                 questionText: 'bagaimana perasaanmu?',
                               ),
