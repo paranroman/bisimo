@@ -47,7 +47,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       });
     }
   }
-  
+
   /// Get formatted Wali name with title based on gender
   String get _formattedWaliName {
     if (_waliName.isEmpty) return 'Wali Kelas';
@@ -235,6 +235,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: StudentCard(
                                 student: student,
+                                onTap: () => context.push(AppRoutes.studentDetail, extra: student),
                                 onRegenerateToken: () => _handleRegenerateToken(student),
                                 onDelete: () => _handleDeleteStudent(student),
                               ),
@@ -315,10 +316,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                               _waliPhotoUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  AssetPaths.cimoJoy,
-                                  fit: BoxFit.cover,
-                                );
+                                return Image.asset(AssetPaths.cimoJoy, fit: BoxFit.cover);
                               },
                             )
                           : Image.asset(

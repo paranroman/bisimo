@@ -18,6 +18,7 @@ class AppRoutes {
 
   // Wali Kelas
   static const String waliDashboard = '/wali-dashboard';
+  static const String studentDetail = '/student-detail';
 
   // Emotion Detection
   static const String emotionDetection = '/emotion-detection';

@@ -17,7 +17,9 @@ import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
 import '../../features/wali_kelas/screens/wali_dashboard_screen.dart';
+import '../../features/wali_kelas/screens/student_detail_screen.dart';
 import '../../features/emotion_detection/services/emotion_api_service.dart';
+import '../../data/models/student_model.dart';
 
 /// Bisimo App Router Configuration
 class AppRouter {
@@ -77,6 +79,16 @@ class AppRouter {
         path: AppRoutes.waliDashboard,
         name: 'waliDashboard',
         builder: (context, state) => const WaliDashboardScreen(),
+      ),
+
+      // Student Detail Screen (Wali views a student profile)
+      GoRoute(
+        path: AppRoutes.studentDetail,
+        name: 'studentDetail',
+        builder: (context, state) {
+          final student = state.extra as StudentModel;
+          return StudentDetailScreen(student: student);
+        },
       ),
 
       // Camera Screen

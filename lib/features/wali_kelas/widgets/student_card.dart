@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
@@ -8,18 +10,20 @@ class StudentCard extends StatelessWidget {
   final StudentModel student;
   final VoidCallback onRegenerateToken;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const StudentCard({
     super.key,
     required this.student,
     required this.onRegenerateToken,
     required this.onDelete,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isMale = student.lockedProfile.gender == Gender.male;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -37,39 +41,13 @@ class StudentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // TODO: Show student detail
-          },
+          onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: isMale
-                        ? const Color(0xFF5B9BD5).withValues(alpha: 0.2)
-                        : const Color(0xFFFFB6C1).withValues(alpha: 0.3),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      student.displayName.isNotEmpty
-                          ? student.displayName[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: isMale
-                            ? const Color(0xFF5B9BD5)
-                            : const Color(0xFFFF69B4),
-                      ),
-                    ),
-                  ),
-                ),
+                // Avatar — shows photo if student uploaded one
+                _buildAvatar(isMale),
                 const SizedBox(width: 16),
 
                 // Info
@@ -92,17 +70,11 @@ class StudentCard extends StatelessWidget {
                       Row(
                         children: [
                           if (student.schoolId != null) ...[
-                            _buildInfoChip(
-                              icon: Icons.school,
-                              text: student.schoolId!,
-                            ),
+                            _buildInfoChip(icon: Icons.school, text: student.schoolId!),
                             const SizedBox(width: 8),
                           ],
                           if (student.age > 0)
-                            _buildInfoChip(
-                              icon: Icons.cake,
-                              text: '${student.age} tahun',
-                            ),
+                            _buildInfoChip(icon: Icons.cake, text: '${student.age} tahun'),
                         ],
                       ),
                       if (student.updatedAt != null) ...[
@@ -124,9 +96,7 @@ class StudentCard extends StatelessWidget {
                 // Actions
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, color: AppColors.textHint),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   onSelected: (value) {
                     switch (value) {
                       case 'regenerate':
@@ -146,9 +116,7 @@ class StudentCard extends StatelessWidget {
                           SizedBox(width: 8),
                           Text(
                             'Buat Token Baru',
-                            style: TextStyle(
-                              fontFamily: AppFonts.sfProRounded,
-                            ),
+                            style: TextStyle(fontFamily: AppFonts.sfProRounded),
                           ),
                         ],
                       ),
@@ -174,6 +142,63 @@ class StudentCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Avatar that shows student photo (base64/network) or initial letter
+  Widget _buildAvatar(bool isMale) {
+    final photoUrl = student.editableProfile.photoUrl;
+    const double avatarSize = 56;
+
+    return Container(
+      width: avatarSize,
+      height: avatarSize,
+      decoration: BoxDecoration(
+        color: isMale
+            ? const Color(0xFF5B9BD5).withValues(alpha: 0.2)
+            : const Color(0xFFFFB6C1).withValues(alpha: 0.3),
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(child: _avatarContent(photoUrl, isMale, avatarSize)),
+    );
+  }
+
+  Widget _avatarContent(String? photoUrl, bool isMale, double size) {
+    // Base64 photo
+    if (photoUrl != null && photoUrl.startsWith('data:image')) {
+      try {
+        final bytes = base64Decode(photoUrl.split(',').last);
+        return Image.memory(bytes, fit: BoxFit.cover, width: size, height: size);
+      } catch (_) {
+        // fall through
+      }
+    }
+
+    // Network URL
+    if (photoUrl != null && photoUrl.startsWith('http')) {
+      return Image.network(
+        photoUrl,
+        fit: BoxFit.cover,
+        width: size,
+        height: size,
+        errorBuilder: (_, error, stackTrace) => _initialAvatar(isMale),
+      );
+    }
+
+    return _initialAvatar(isMale);
+  }
+
+  Widget _initialAvatar(bool isMale) {
+    return Center(
+      child: Text(
+        student.displayName.isNotEmpty ? student.displayName[0].toUpperCase() : '?',
+        style: TextStyle(
+          fontFamily: AppFonts.sfProRounded,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          color: isMale ? const Color(0xFF5B9BD5) : const Color(0xFFFF69B4),
         ),
       ),
     );
