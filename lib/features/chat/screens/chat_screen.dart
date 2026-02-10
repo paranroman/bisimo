@@ -105,7 +105,10 @@ class _ChatScreenState extends State<ChatScreen> {
               if (chatProvider.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(chatProvider.errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                  child: Text(
+                    chatProvider.errorMessage!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
                 ),
               _buildInputArea(chatProvider),
             ],
@@ -118,7 +121,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildCimoEmotionCard(ChatProvider provider) {
     // Handle case where no emotion data is passed (e.g., text-only chat)
     final String emotionKey = widget.emotionResult?.finalEmotion.emotion.toLowerCase() ?? 'neutral';
-    final String indonesianEmotion = _mapEmotionToIndonesian(emotionKey);
+    // Capitalize first letter for display
+    final String displayEmotion = emotionKey.isNotEmpty
+        ? '${emotionKey[0].toUpperCase()}${emotionKey.substring(1)}'
+        : 'Neutral';
     final List<Color> bgColors = _getEmotionBackgroundColors(emotionKey);
 
     return Container(
@@ -126,19 +132,43 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         children: [
           Container(
-            width: 140, height: 140,
+            width: 140,
+            height: 140,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: bgColors),
-              boxShadow: [BoxShadow(color: bgColors[1].withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: bgColors,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: bgColors[1].withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Padding(padding: const EdgeInsets.all(10), child: Image.asset(AssetPaths.getCimoByEmotion(emotionKey), fit: BoxFit.contain)),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Image.asset(AssetPaths.getCimoByEmotion(emotionKey), fit: BoxFit.contain),
+            ),
           ),
           const SizedBox(height: 12),
           RichText(
             text: TextSpan(
-              style: const TextStyle(fontFamily: AppFonts.sfProRounded, fontSize: 16, color: AppColors.textPrimary),
-              children: [const TextSpan(text: 'Perasaan: '), TextSpan(text: indonesianEmotion, style: const TextStyle(fontWeight: FontWeight.w700))],
+              style: const TextStyle(
+                fontFamily: AppFonts.sfProRounded,
+                fontSize: 16,
+                color: AppColors.textPrimary,
+              ),
+              children: [
+                const TextSpan(text: 'Perasaan: '),
+                TextSpan(
+                  text: displayEmotion,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
             ),
           ),
         ],
@@ -160,11 +190,22 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: BoxDecoration(
                 color: isUser ? const Color(0xFF5BC0EB) : const Color(0xFFF8A5A5),
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20), topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isUser ? 20 : 4), bottomRight: Radius.circular(isUser ? 4 : 20),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isUser ? 20 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 20),
                 ),
               ),
-              child: Text(message.content, style: TextStyle(fontFamily: AppFonts.sfProRounded, fontSize: 14, fontWeight: FontWeight.w500, color: isUser ? Colors.white : AppColors.textPrimary, height: 1.4)),
+              child: Text(
+                message.content,
+                style: TextStyle(
+                  fontFamily: AppFonts.sfProRounded,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isUser ? Colors.white : AppColors.textPrimary,
+                  height: 1.4,
+                ),
+              ),
             ),
           ),
         ],
@@ -179,7 +220,13 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF8E7),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Row(
@@ -187,14 +234,31 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, fontSize: 14, color: isTyping ? Colors.grey.shade600 : Colors.black),
+                style: TextStyle(
+                  fontFamily: AppFonts.sfProRounded,
+                  fontSize: 14,
+                  color: isTyping ? Colors.grey.shade600 : Colors.black,
+                ),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
                   hintText: isTyping ? 'Cimo sedang mengetik...' : 'Ketik pesan...',
-                  hintStyle: const TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: isTyping ? Colors.grey.shade400 : Colors.grey.shade300)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: isTyping ? Colors.grey.shade400 : Colors.grey.shade300)),
+                  hintStyle: const TextStyle(
+                    fontFamily: AppFonts.sfProRounded,
+                    color: AppColors.textHint,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    borderSide: BorderSide(
+                      color: isTyping ? Colors.grey.shade400 : Colors.grey.shade300,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    borderSide: BorderSide(
+                      color: isTyping ? Colors.grey.shade400 : Colors.grey.shade300,
+                    ),
+                  ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
                 textInputAction: TextInputAction.send,
@@ -206,10 +270,20 @@ class _ChatScreenState extends State<ChatScreen> {
             GestureDetector(
               onTap: () => _sendMessage(provider),
               child: Container(
-                width: 48, height: 48,
-                decoration: BoxDecoration(color: isTyping ? Colors.grey.shade400 : const Color(0xFF5BC0EB), shape: BoxShape.circle),
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isTyping ? Colors.grey.shade400 : const Color(0xFF5BC0EB),
+                  shape: BoxShape.circle,
+                ),
                 child: isTyping
-                    ? const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)))
+                    ? const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        ),
+                      )
                     : const Icon(Icons.arrow_forward, color: Colors.white, size: 24),
               ),
             ),
@@ -221,26 +295,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<Color> _getEmotionBackgroundColors(String emotion) {
     switch (emotion.toLowerCase()) {
-      case 'joy': case 'happy': return [const Color(0xFFFFD859), const Color(0xFFE5B800)];
-      case 'sad': return [const Color(0xFF5B9BD5), const Color(0xFF2E5984)];
-      case 'angry': return [const Color(0xFFE57373), const Color(0xFFB71C1C)];
-      case 'fear': return [const Color(0xFF9575CD), const Color(0xFF512DA8)];
-      case 'surprise': return [const Color(0xFFFFB74D), const Color(0xFFE65100)];
-      case 'disgust': return [const Color(0xFF81C784), const Color(0xFF2E7D32)];
-      default: return [const Color(0xFF5B9BD5), const Color(0xFF2E5984)];
-    }
-  }
-
-  String _mapEmotionToIndonesian(String emotion) {
-    switch (emotion.toLowerCase()) {
-      case 'senang': case 'happy': return 'Kebahagiaan';
-      case 'sedih': case 'sad': return 'Kesedihan';
-      case 'marah': case 'angry': return 'Kemarahan';
-      case 'takut': case 'fear': return 'Ketakutan';
-      case 'terkejut': case 'surprise': return 'Keterkejutan';
-      case 'jijik': case 'disgust': return 'Kejijikan';
-      case 'neutral': return 'Neutral';
-      default: return 'Neutral';
+      case 'senang':
+        return [const Color(0xFFFFD859), const Color(0xFFE5B800)];
+      case 'sedih':
+        return [const Color(0xFF5B9BD5), const Color(0xFF2E5984)];
+      case 'marah':
+        return [const Color(0xFFE57373), const Color(0xFFB71C1C)];
+      case 'takut':
+        return [const Color(0xFF9575CD), const Color(0xFF512DA8)];
+      case 'terkejut':
+        return [const Color(0xFFFFB74D), const Color(0xFFE65100)];
+      case 'jijik':
+        return [const Color(0xFF81C784), const Color(0xFF2E7D32)];
+      default:
+        return [const Color(0xFF5B9BD5), const Color(0xFF2E5984)];
     }
   }
 }

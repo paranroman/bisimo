@@ -24,7 +24,7 @@ class EmotionRepository {
     // Simulate processing delay
     await Future.delayed(const Duration(seconds: 2));
 
-    return EmotionModel(type: EmotionType.joy, confidence: 0.85, detectedAt: DateTime.now());
+    return EmotionModel(type: EmotionType.senang, confidence: 0.85, detectedAt: DateTime.now());
   }
 
   /// Simulate emotion analysis from text
@@ -39,13 +39,13 @@ class EmotionRepository {
     if (lowerText.contains('senang') ||
         lowerText.contains('happy') ||
         lowerText.contains('bahagia')) {
-      type = EmotionType.joy;
+      type = EmotionType.senang;
     } else if (lowerText.contains('sedih') || lowerText.contains('sad')) {
-      type = EmotionType.sad;
+      type = EmotionType.sedih;
     } else if (lowerText.contains('marah') || lowerText.contains('kesal')) {
-      type = EmotionType.angry;
+      type = EmotionType.marah;
     } else if (lowerText.contains('takut') || lowerText.contains('khawatir')) {
-      type = EmotionType.fear;
+      type = EmotionType.takut;
     }
 
     return EmotionModel(type: type, confidence: 0.75, detectedAt: DateTime.now());
@@ -57,7 +57,7 @@ class EmotionRepository {
 
     return [
       EmotionModel(
-        type: EmotionType.joy,
+        type: EmotionType.senang,
         confidence: 0.9,
         detectedAt: DateTime.now().subtract(const Duration(hours: 2)),
       ),
@@ -67,7 +67,7 @@ class EmotionRepository {
         detectedAt: DateTime.now().subtract(const Duration(days: 1)),
       ),
       EmotionModel(
-        type: EmotionType.sad,
+        type: EmotionType.sedih,
         confidence: 0.75,
         detectedAt: DateTime.now().subtract(const Duration(days: 2)),
       ),

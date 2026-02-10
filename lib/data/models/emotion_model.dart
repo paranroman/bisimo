@@ -19,17 +19,17 @@ class EmotionModel {
 
   String get emotionName {
     switch (type) {
-      case EmotionType.joy:
+      case EmotionType.senang:
         return 'Senang';
-      case EmotionType.sad:
+      case EmotionType.sedih:
         return 'Sedih';
-      case EmotionType.angry:
+      case EmotionType.marah:
         return 'Marah';
-      case EmotionType.fear:
+      case EmotionType.takut:
         return 'Takut';
-      case EmotionType.surprise:
+      case EmotionType.terkejut:
         return 'Terkejut';
-      case EmotionType.disgust:
+      case EmotionType.jijik:
         return 'Jijik';
       case EmotionType.neutral:
         return 'Neutral';

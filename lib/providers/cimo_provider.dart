@@ -49,34 +49,34 @@ class CimoProvider extends ChangeNotifier {
   void reactToUserEmotion(EmotionType userEmotion) {
     // Cimo responds empathetically to user's emotion
     switch (userEmotion) {
-      case EmotionType.joy:
-        setEmotion(EmotionType.joy, customMessage: 'Wah, senang sekali melihatmu bahagia! 😊');
+      case EmotionType.senang:
+        setEmotion(EmotionType.senang, customMessage: 'Wah, senang sekali melihatmu bahagia! 😊');
         break;
-      case EmotionType.sad:
+      case EmotionType.sedih:
         setEmotion(
-          EmotionType.sad,
+          EmotionType.sedih,
           customMessage: 'Aku di sini untukmu 💙 Ceritakan apa yang kamu rasakan ya...',
         );
         break;
-      case EmotionType.angry:
+      case EmotionType.marah:
         setEmotion(
           EmotionType.neutral,
           customMessage: 'Aku mengerti kamu sedang kesal. Tarik napas dalam-dalam ya...',
         );
         break;
-      case EmotionType.fear:
+      case EmotionType.takut:
         setEmotion(
           EmotionType.neutral,
           customMessage: 'Jangan khawatir, aku akan menemanimu. Kamu tidak sendirian 🤗',
         );
         break;
-      case EmotionType.surprise:
+      case EmotionType.terkejut:
         setEmotion(
-          EmotionType.surprise,
+          EmotionType.terkejut,
           customMessage: 'Wah, ada yang mengejutkan ya? Ceritakan dong!',
         );
         break;
-      case EmotionType.disgust:
+      case EmotionType.jijik:
         setEmotion(
           EmotionType.neutral,
           customMessage: 'Hmm, sepertinya ada yang tidak menyenangkan. Apa yang terjadi?',

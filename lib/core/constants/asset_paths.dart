@@ -40,27 +40,20 @@ class AssetPaths {
   /// Get Cimo image path by emotion name
   static String getCimoByEmotion(String emotion) {
     switch (emotion.toLowerCase()) {
-      case 'joy':
-      case 'happy':
       case 'senang':
         return cimoJoy;
-      case 'sad':
       case 'sedih':
         return cimoSad;
-      case 'angry':
       case 'marah':
         return cimoAngry;
-      case 'fear':
       case 'takut':
         return cimoFear;
-      case 'surprise':
       case 'terkejut':
         return cimoSurprise;
-      case 'disgust':
       case 'jijik':
         return cimoDisgust;
       default:
-        return cimoJoy; // Default to joy
+        return cimoJoy;
     }
   }
 }

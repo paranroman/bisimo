@@ -15,7 +15,7 @@ class CimoStateModel {
   );
 
   factory CimoStateModel.greeting() => const CimoStateModel(
-    emotion: EmotionType.joy,
+    emotion: EmotionType.senang,
     message: 'Selamat datang! Bagaimana perasaanmu hari ini?',
     isAnimating: false,
   );
@@ -31,17 +31,17 @@ class CimoStateModel {
   /// Get Cimo response message based on emotion
   static String getResponseMessage(EmotionType emotion) {
     switch (emotion) {
-      case EmotionType.joy:
+      case EmotionType.senang:
         return 'Wah, senang sekali melihatmu bahagia! 😊';
-      case EmotionType.sad:
+      case EmotionType.sedih:
         return 'Aku di sini untukmu. Ceritakan apa yang kamu rasakan ya...';
-      case EmotionType.angry:
+      case EmotionType.marah:
         return 'Aku mengerti kamu sedang kesal. Tarik napas dalam-dalam ya...';
-      case EmotionType.fear:
+      case EmotionType.takut:
         return 'Jangan khawatir, aku akan menemanimu. Kamu tidak sendirian.';
-      case EmotionType.surprise:
+      case EmotionType.terkejut:
         return 'Wah, ada yang mengejutkan ya? Ceritakan dong!';
-      case EmotionType.disgust:
+      case EmotionType.jijik:
         return 'Hmm, sepertinya ada yang tidak menyenangkan. Apa yang terjadi?';
       case EmotionType.neutral:
         return 'Hai! Aku Cimo, teman emosi kamu. Ada yang ingin kamu ceritakan?';

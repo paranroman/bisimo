@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Emotion type enum for Cimo and emotion detection
-enum EmotionType { joy, sad, angry, fear, surprise, disgust, neutral }
+enum EmotionType { senang, sedih, marah, takut, terkejut, jijik, neutral }
 
 /// User role enum for multi-role authentication
 enum UserRole { wali, murid }
@@ -26,12 +26,7 @@ class UserModel {
     this.createdAt,
   });
 
-  factory UserModel.empty() => const UserModel(
-        id: '',
-        name: '',
-        email: '',
-        role: UserRole.wali,
-      );
+  factory UserModel.empty() => const UserModel(id: '', name: '', email: '', role: UserRole.wali);
 
   /// Create UserModel from Firestore document
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -41,10 +36,7 @@ class UserModel {
       name: data['name'] as String? ?? '',
       email: data['email'] as String? ?? '',
       avatarUrl: data['avatarUrl'] as String?,
-      role: UserRole.values.firstWhere(
-        (e) => e.name == data['role'],
-        orElse: () => UserRole.wali,
-      ),
+      role: UserRole.values.firstWhere((e) => e.name == data['role'], orElse: () => UserRole.wali),
       schoolId: data['schoolId'] as String?,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
@@ -57,10 +49,7 @@ class UserModel {
       name: data['name'] as String? ?? '',
       email: data['email'] as String? ?? '',
       avatarUrl: data['avatarUrl'] as String?,
-      role: UserRole.values.firstWhere(
-        (e) => e.name == data['role'],
-        orElse: () => UserRole.wali,
-      ),
+      role: UserRole.values.firstWhere((e) => e.name == data['role'], orElse: () => UserRole.wali),
       schoolId: data['schoolId'] as String?,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
@@ -74,7 +63,9 @@ class UserModel {
       'avatarUrl': avatarUrl,
       'role': role.name,
       'schoolId': schoolId,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 
