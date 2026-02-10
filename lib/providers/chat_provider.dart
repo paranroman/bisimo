@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/chat_message_model.dart';
+import '../data/models/chat_message_model.dart';
 import '../features/chat/services/chat_service.dart';
 import '../features/emotion_detection/services/emotion_api_service.dart';
 
 /// Manages the chat state and communication with the ChatService.
 class ChatProvider extends ChangeNotifier {
-  final ChatService _chatService = ChatService();
+  ChatProvider({required ChatService chatService}) : _chatService = chatService;
+
+  final ChatService _chatService;
 
   List<ChatMessageModel> _messages = [];
   bool _isTyping = false;
@@ -56,20 +58,39 @@ class ChatProvider extends ChangeNotifier {
     }
 
     _clearError();
-    _addMessage(ChatMessageModel(
-      id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-      content: content.trim(),
-      isFromUser: true,
-      timestamp: DateTime.now(),
-    ));
+    _addMessage(
+      ChatMessageModel(
+        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        content: content.trim(),
+        isFromUser: true,
+        timestamp: DateTime.now(),
+      ),
+    );
     _setTyping(true);
 
     try {
-      final cimoResponse = await _chatService.postMessage(
+      final response = await _chatService.postMessage(
         sessionId: _sessionId!,
         message: content.trim(),
       );
-      _addCimoMessage(cimoResponse);
+
+      final reply = response['reply'] as String;
+      final textPrediction = response['text_prediction'] as Map<String, dynamic>?;
+
+      // Update last user message with detected emotion from IndoBERT
+      if (textPrediction != null && _messages.isNotEmpty) {
+        final lastUserIdx = _messages.lastIndexWhere((m) => m.isFromUser);
+        if (lastUserIdx >= 0) {
+          final label = textPrediction['label'] as String?;
+          final confidence = (textPrediction['confidence'] as num?)?.toDouble();
+          _messages[lastUserIdx] = _messages[lastUserIdx].copyWith(
+            detectedEmotion: label,
+            emotionConfidence: confidence,
+          );
+        }
+      }
+
+      _addCimoMessage(reply);
     } catch (e) {
       const errorMsg = 'Maaf, aku sedang tidak bisa merespons. Coba lagi ya.';
       _setError(errorMsg);
@@ -86,13 +107,15 @@ class ChatProvider extends ChangeNotifier {
 
   void _addCimoMessage(String content, {MessageStatus status = MessageStatus.sent}) {
     if (content.trim().isEmpty) return;
-    _addMessage(ChatMessageModel(
-      id: 'cimo_${DateTime.now().millisecondsSinceEpoch}',
-      content: content.trim(),
-      isFromUser: false,
-      timestamp: DateTime.now(),
-      status: status,
-    ));
+    _addMessage(
+      ChatMessageModel(
+        id: 'cimo_${DateTime.now().millisecondsSinceEpoch}',
+        content: content.trim(),
+        isFromUser: false,
+        timestamp: DateTime.now(),
+        status: status,
+      ),
+    );
   }
 
   void _addMessage(ChatMessageModel message) {
@@ -128,7 +151,6 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _chatService.dispose();
     super.dispose();
   }
 }

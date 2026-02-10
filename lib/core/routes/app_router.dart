@@ -11,6 +11,7 @@ import '../../features/auth/screens/profile_data_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/emotion_detection/screens/camera_screen.dart';
 import '../../features/emotion_detection/screens/emotion_loading_screen.dart';
+import '../../features/emotion_detection/screens/detection_error_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
@@ -104,6 +105,16 @@ class AppRouter {
           // atau null (text-only dari Home)
           final emotionResult = state.extra as CombinedEmotionResult?;
           return ChatScreen(emotionResult: emotionResult);
+        },
+      ),
+
+      // Detection Error Screen
+      GoRoute(
+        path: AppRoutes.detectionError,
+        name: 'detectionError',
+        builder: (context, state) {
+          final errorType = state.extra as DetectionErrorType? ?? DetectionErrorType.apiError;
+          return DetectionErrorScreen(errorType: errorType);
         },
       ),
 

@@ -119,13 +119,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildCimoEmotionCard(ChatProvider provider) {
-    // Handle case where no emotion data is passed (e.g., text-only chat)
-    final String emotionKey = widget.emotionResult?.finalEmotion.emotion.toLowerCase() ?? 'neutral';
+    final bool hasEmotion = widget.emotionResult != null;
+    final String emotionKey = widget.emotionResult?.finalEmotion.emotion.toLowerCase() ?? '';
     // Capitalize first letter for display
     final String displayEmotion = emotionKey.isNotEmpty
         ? '${emotionKey[0].toUpperCase()}${emotionKey.substring(1)}'
-        : 'Neutral';
-    final List<Color> bgColors = _getEmotionBackgroundColors(emotionKey);
+        : '';
+    final List<Color> bgColors = hasEmotion
+        ? _getEmotionBackgroundColors(emotionKey)
+        : [const Color(0xFF5BC0EB), const Color(0xFF2E86C1)];
+    final String cimoImage = hasEmotion
+        ? AssetPaths.getCimoByEmotion(emotionKey)
+        : AssetPaths.cimoJoy;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -151,24 +156,32 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(10),
-              child: Image.asset(AssetPaths.getCimoByEmotion(emotionKey), fit: BoxFit.contain),
+              child: Image.asset(cimoImage, fit: BoxFit.contain),
             ),
           ),
           const SizedBox(height: 12),
           RichText(
+            textAlign: TextAlign.center,
             text: TextSpan(
               style: const TextStyle(
                 fontFamily: AppFonts.sfProRounded,
                 fontSize: 16,
                 color: AppColors.textPrimary,
               ),
-              children: [
-                const TextSpan(text: 'Perasaan: '),
-                TextSpan(
-                  text: displayEmotion,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ],
+              children: hasEmotion
+                  ? [
+                      const TextSpan(text: 'Perasaan: '),
+                      TextSpan(
+                        text: displayEmotion,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ]
+                  : [
+                      const TextSpan(
+                        text: 'Ceritakan perasaanmu pada Cimo!',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
             ),
           ),
         ],
@@ -184,28 +197,46 @@ class _ChatScreenState extends State<ChatScreen> {
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Flexible(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isUser ? const Color(0xFF5BC0EB) : const Color(0xFFF8A5A5),
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isUser ? 20 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 20),
+            child: Column(
+              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                Container(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isUser ? const Color(0xFF5BC0EB) : const Color(0xFFF8A5A5),
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(20),
+                      topRight: const Radius.circular(20),
+                      bottomLeft: Radius.circular(isUser ? 20 : 4),
+                      bottomRight: Radius.circular(isUser ? 4 : 20),
+                    ),
+                  ),
+                  child: Text(
+                    message.content,
+                    style: TextStyle(
+                      fontFamily: AppFonts.sfProRounded,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: isUser ? Colors.white : AppColors.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(
-                message.content,
-                style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isUser ? Colors.white : AppColors.textPrimary,
-                  height: 1.4,
-                ),
-              ),
+                // Tampilkan label emosi yang dideteksi IndoBERT
+                if (isUser && message.detectedEmotion != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '😊 ${message.detectedEmotion}',
+                      style: TextStyle(
+                        fontFamily: AppFonts.sfProRounded,
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

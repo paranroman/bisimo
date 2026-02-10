@@ -5,6 +5,8 @@ class ChatMessageModel {
   final bool isFromUser;
   final DateTime timestamp;
   final MessageStatus status;
+  final String? detectedEmotion;
+  final double? emotionConfidence;
 
   const ChatMessageModel({
     required this.id,
@@ -12,6 +14,8 @@ class ChatMessageModel {
     required this.isFromUser,
     required this.timestamp,
     this.status = MessageStatus.sent,
+    this.detectedEmotion,
+    this.emotionConfidence,
   });
 
   ChatMessageModel copyWith({
@@ -20,6 +24,8 @@ class ChatMessageModel {
     bool? isFromUser,
     DateTime? timestamp,
     MessageStatus? status,
+    String? detectedEmotion,
+    double? emotionConfidence,
   }) {
     return ChatMessageModel(
       id: id ?? this.id,
@@ -27,6 +33,8 @@ class ChatMessageModel {
       isFromUser: isFromUser ?? this.isFromUser,
       timestamp: timestamp ?? this.timestamp,
       status: status ?? this.status,
+      detectedEmotion: detectedEmotion ?? this.detectedEmotion,
+      emotionConfidence: emotionConfidence ?? this.emotionConfidence,
     );
   }
 }

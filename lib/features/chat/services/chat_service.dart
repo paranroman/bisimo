@@ -16,18 +16,21 @@ import '../../emotion_detection/services/emotion_api_service.dart';
 ///
 /// **Nol API key di Flutter.** Semua key tersimpan aman di Cloud Run env vars.
 class ChatService {
-  ChatService({http.Client? httpClient}) : _client = httpClient ?? http.Client();
+  ChatService({required String chatbotUrl, http.Client? httpClient})
+    : _baseUrl = chatbotUrl,
+      _client = httpClient ?? http.Client();
 
   // ══════════════════════════════════════════════════════════════════════
   //  API Endpoints - menggunakan gateway yang sama dengan EmotionApiService
   // ══════════════════════════════════════════════════════════════════════
 
-  static const String _baseUrl = 'https://mistral-chatbot-o4xbdy3cxq-et.a.run.app';
+  final String _baseUrl;
   static const String _startSessionPath = '/session/start';
   static const String _chatPath = '/chat';
 
   final http.Client _client;
-  static const Duration _timeout = Duration(seconds: 60);
+  static const Duration _sessionTimeout = Duration(seconds: 15);
+  static const Duration _chatTimeout = Duration(seconds: 30);
 
   // ══════════════════════════════════════════════════════════════════════
   //  Firebase Auth Helper
@@ -69,10 +72,7 @@ class ChatService {
     // Session sudah dimulai oleh /predict-combined di EmotionLoadingScreen.
     // Gunakan data yang sudah ada.
     if (useCamera && emotionResult != null) {
-      return {
-        'session_id': emotionResult.sessionId,
-        'response': emotionResult.greeting,
-      };
+      return {'session_id': emotionResult.sessionId, 'response': emotionResult.greeting};
     }
 
     // ── Skenario 2: Tanpa kamera (text-only) ──────────────────────────
@@ -81,6 +81,7 @@ class ChatService {
       path: _startSessionPath,
       body: {},
       label: 'StartSession',
+      timeout: _sessionTimeout,
     );
 
     final json = jsonDecode(responseBody) as Map<String, dynamic>;
@@ -100,25 +101,26 @@ class ChatService {
   ///               `CombinedEmotionResult.sessionId`.
   /// [message] - Pesan teks dari pengguna.
   ///
-  /// Returns: Balasan dari Cimo (assistant_reply).
-  Future<String> postMessage({
+  /// Returns: Map berisi 'reply' (String) dan opsional 'text_prediction' (Map).
+  Future<Map<String, dynamic>> postMessage({
     required String sessionId,
     required String message,
   }) async {
     final responseBody = await _postRaw(
       path: _chatPath,
-      body: {
-        'session_id': sessionId,
-        'message': message,
-      },
+      body: {'session_id': sessionId, 'message': message},
       label: 'PostMessage',
+      timeout: _chatTimeout,
     );
 
     final json = jsonDecode(responseBody) as Map<String, dynamic>;
     // Backend mengembalikan: { "assistant_reply": "...", "text_prediction": {...}, ... }
-    return json['assistant_reply'] as String? ?? 
-           json['response'] as String? ?? 
-           'Maaf, aku tidak bisa merespons saat ini.';
+    final reply =
+        json['assistant_reply'] as String? ??
+        json['response'] as String? ??
+        'Maaf, aku tidak bisa merespons saat ini.';
+
+    return {'reply': reply, 'text_prediction': json['text_prediction'] as Map<String, dynamic>?};
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -129,57 +131,70 @@ class ChatService {
     required String path,
     required Map<String, dynamic> body,
     required String label,
+    Duration? timeout,
   }) async {
-    try {
-      final token = await _getFirebaseToken();
-      final uri = Uri.parse('$_baseUrl$path');
-      final headers = <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-      final encodedBody = jsonEncode(body);
+    final effectiveTimeout = timeout ?? _sessionTimeout;
 
-      debugPrint('[$label] 📤 POST $uri');
-      if (encodedBody.length < 500) {
-        debugPrint('[$label] Body: $encodedBody');
-      } else {
-        debugPrint('[$label] Body: ${encodedBody.substring(0, 200)}... (${encodedBody.length} chars)');
+    for (int attempt = 0; attempt < 2; attempt++) {
+      try {
+        final token = await _getFirebaseToken();
+        final uri = Uri.parse('$_baseUrl$path');
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        };
+        final encodedBody = jsonEncode(body);
+
+        debugPrint('[$label] 📤 POST $uri (attempt ${attempt + 1})');
+        if (encodedBody.length < 500) {
+          debugPrint('[$label] Body: $encodedBody');
+        } else {
+          debugPrint(
+            '[$label] Body: ${encodedBody.substring(0, 200)}... (${encodedBody.length} chars)',
+          );
+        }
+
+        final response = await _client
+            .post(uri, headers: headers, body: encodedBody)
+            .timeout(effectiveTimeout);
+
+        debugPrint('[$label] 📥 Status: ${response.statusCode}');
+        debugPrint('[$label] Response: ${response.body}');
+
+        if (response.statusCode == 200) {
+          return response.body;
+        } else if (response.statusCode == 401) {
+          throw ChatServiceException(
+            'Unauthorized. Silakan login ulang.',
+            statusCode: 401,
+            responseBody: response.body,
+          );
+        } else if (response.statusCode == 404) {
+          throw ChatServiceException(
+            'Session not found. Mulai session baru.',
+            statusCode: 404,
+            responseBody: response.body,
+          );
+        } else {
+          throw ChatServiceException(
+            'Server error: ${response.statusCode}',
+            statusCode: response.statusCode,
+            responseBody: response.body,
+          );
+        }
+      } on ChatServiceException {
+        rethrow;
+      } catch (e) {
+        if (attempt == 0) {
+          debugPrint('[$label] ⚠️ Retry after error: $e');
+          await Future.delayed(const Duration(milliseconds: 500));
+          continue;
+        }
+        debugPrint('[$label] 💥 Error: $e');
+        throw ChatServiceException('Network error: $e');
       }
-
-      final response = await _client
-          .post(uri, headers: headers, body: encodedBody)
-          .timeout(_timeout);
-
-      debugPrint('[$label] 📥 Status: ${response.statusCode}');
-      debugPrint('[$label] Response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        return response.body;
-      } else if (response.statusCode == 401) {
-        throw ChatServiceException(
-          'Unauthorized. Silakan login ulang.',
-          statusCode: 401,
-          responseBody: response.body,
-        );
-      } else if (response.statusCode == 404) {
-        throw ChatServiceException(
-          'Session not found. Mulai session baru.',
-          statusCode: 404,
-          responseBody: response.body,
-        );
-      } else {
-        throw ChatServiceException(
-          'Server error: ${response.statusCode}',
-          statusCode: response.statusCode,
-          responseBody: response.body,
-        );
-      }
-    } on ChatServiceException {
-      rethrow;
-    } catch (e) {
-      debugPrint('[$label] 💥 Error: $e');
-      throw ChatServiceException('Network error: $e');
     }
+    throw ChatServiceException('Request failed after retries');
   }
 
   void dispose() => _client.close();
@@ -191,7 +206,7 @@ class ChatService {
 
 class ChatServiceException implements Exception {
   ChatServiceException(this.message, {this.statusCode, this.responseBody});
-  
+
   final String message;
   final int? statusCode;
   final String? responseBody;

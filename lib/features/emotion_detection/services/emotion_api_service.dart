@@ -26,16 +26,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// );
 /// ```
 
-final service = EmotionApiService(
-  chatbotUrl: 'https://mistral-chatbot-o4xbdy3cxq-et.a.run.app',
-);
-
 class EmotionApiService {
-  EmotionApiService({
-    required String chatbotUrl,
-    http.Client? httpClient,
-  })  : _chatbotUrl = chatbotUrl,
-        _client = httpClient ?? http.Client();
+  EmotionApiService({required String chatbotUrl, http.Client? httpClient})
+    : _chatbotUrl = chatbotUrl,
+      _client = httpClient ?? http.Client();
 
   /// URL Chatbot API Gateway — satu-satunya endpoint.
   final String _chatbotUrl;
@@ -48,7 +42,8 @@ class EmotionApiService {
   /// Getter untuk session ID saat ini.
   String? get sessionId => _sessionId;
 
-  static const Duration _timeout = Duration(seconds: 30);
+  static const Duration _predictTimeout = Duration(seconds: 15);
+  static const Duration _chatTimeout = Duration(seconds: 30);
 
   // ══════════════════════════════════════════════════════════════════════
   //  Firebase Auth Helper
@@ -76,11 +71,7 @@ class EmotionApiService {
     if (text.trim().isEmpty) {
       return EmotionResult(emotion: 'Neutral', confidence: 0.0);
     }
-    return _postAndParse(
-      path: '/predict-text',
-      body: {'text': text},
-      label: 'TextEmotion',
-    );
+    return _postAndParse(path: '/predict-text', body: {'text': text}, label: 'TextEmotion');
   }
 
   /// Alias — backward compatibility.
@@ -105,9 +96,7 @@ class EmotionApiService {
   // ══════════════════════════════════════════════════════════════════════
 
   /// Kirim motion sequence (60 frames × 154 features) melalui Chatbot gateway.
-  Future<EmotionResult> detectMotionEmotion(
-      List<List<double>> motionSequence,
-      ) async {
+  Future<EmotionResult> detectMotionEmotion(List<List<double>> motionSequence) async {
     return _postAndParse(
       path: '/predict-motion',
       body: {'data': motionSequence},
@@ -128,11 +117,9 @@ class EmotionApiService {
 
     final responseBody = await _postRaw(
       path: '/predict-combined',
-      body: {
-        'face_image': base64Image,
-        'motion_landmarks': motionSequence,
-      },
+      body: {'face_image': base64Image, 'motion_landmarks': motionSequence},
       label: 'CombinedEmotion',
+      timeout: _chatTimeout,
     );
 
     final json = jsonDecode(responseBody) as Map<String, dynamic>;
@@ -172,6 +159,7 @@ class EmotionApiService {
       path: '/session/start',
       body: {},
       label: 'StartSession',
+      timeout: _predictTimeout,
     );
 
     final json = jsonDecode(responseBody) as Map<String, dynamic>;
@@ -194,17 +182,15 @@ class EmotionApiService {
     if (_sessionId == null) {
       throw EmotionApiException(
         'Belum ada session aktif. '
-            'Panggil detectCombinedEmotion() atau startSession() terlebih dulu.',
+        'Panggil detectCombinedEmotion() atau startSession() terlebih dulu.',
       );
     }
 
     final responseBody = await _postRaw(
       path: '/chat',
-      body: {
-        'session_id': _sessionId,
-        'message': message,
-      },
+      body: {'session_id': _sessionId, 'message': message},
       label: 'Chat',
+      timeout: _chatTimeout,
     );
 
     final json = jsonDecode(responseBody) as Map<String, dynamic>;
@@ -230,10 +216,12 @@ class EmotionApiService {
     try {
       final token = await _getFirebaseToken();
       final uri = Uri.parse('$_chatbotUrl/session/$_sessionId');
-      await _client.delete(uri, headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      }).timeout(_timeout);
+      await _client
+          .delete(
+            uri,
+            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+          )
+          .timeout(_predictTimeout);
     } catch (e) {
       debugPrint('[EndSession] ⚠️ Failed: $e');
     } finally {
@@ -249,80 +237,94 @@ class EmotionApiService {
     required String path,
     required Map<String, dynamic> body,
     required String label,
+    Duration? timeout,
   }) async {
-    final responseBody = await _postRaw(path: path, body: body, label: label);
+    final responseBody = await _postRaw(path: path, body: body, label: label, timeout: timeout);
     final json = jsonDecode(responseBody) as Map<String, dynamic>;
 
     return EmotionResult(
       emotion: json['label'] as String? ?? 'Neutral',
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
       allPredictions: json.containsKey('all_scores')
-          ? (json['all_scores'] as Map<String, dynamic>)
-          .map((k, v) => MapEntry(k, (v as num).toDouble()))
+          ? (json['all_scores'] as Map<String, dynamic>).map(
+              (k, v) => MapEntry(k, (v as num).toDouble()),
+            )
           : null,
     );
   }
 
   /// Semua request → satu URL (chatbot) + Firebase token.
+  /// Retry 1x otomatis untuk network errors.
   Future<String> _postRaw({
     required String path,
     required Map<String, dynamic> body,
     required String label,
+    Duration? timeout,
   }) async {
-    try {
-      final token = await _getFirebaseToken();
-      final uri = Uri.parse('$_chatbotUrl$path');
+    final effectiveTimeout = timeout ?? _predictTimeout;
 
-      final headers = <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
+    for (int attempt = 0; attempt < 2; attempt++) {
+      try {
+        final token = await _getFirebaseToken();
+        final uri = Uri.parse('$_chatbotUrl$path');
 
-      final encodedBody = jsonEncode(body);
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        };
 
-      debugPrint('[$label] 📤 POST $uri');
-      if (encodedBody.length < 500) {
-        debugPrint('[$label] Body: $encodedBody');
-      } else {
-        debugPrint(
-          '[$label] Body: ${encodedBody.substring(0, 200)}... '
-              '(${encodedBody.length} chars)',
-        );
+        final encodedBody = jsonEncode(body);
+
+        debugPrint('[$label] 📤 POST $uri (attempt ${attempt + 1})');
+        if (encodedBody.length < 500) {
+          debugPrint('[$label] Body: $encodedBody');
+        } else {
+          debugPrint(
+            '[$label] Body: ${encodedBody.substring(0, 200)}... '
+            '(${encodedBody.length} chars)',
+          );
+        }
+
+        final response = await _client
+            .post(uri, headers: headers, body: encodedBody)
+            .timeout(effectiveTimeout);
+
+        debugPrint('[$label] 📥 Status: ${response.statusCode}');
+        debugPrint('[$label] Response: ${response.body}');
+
+        if (response.statusCode == 200) {
+          return response.body;
+        } else if (response.statusCode == 401) {
+          throw EmotionApiException(
+            'Unauthorized. Silakan login ulang.',
+            statusCode: 401,
+            responseBody: response.body,
+          );
+        } else if (response.statusCode == 404) {
+          throw EmotionApiException(
+            'Session not found. Mulai session baru.',
+            statusCode: 404,
+            responseBody: response.body,
+          );
+        } else {
+          throw EmotionApiException(
+            'Server error: ${response.statusCode}',
+            statusCode: response.statusCode,
+            responseBody: response.body,
+          );
+        }
+      } on EmotionApiException {
+        rethrow;
+      } catch (e) {
+        if (attempt == 0) {
+          debugPrint('[$label] ⚠️ Retry after error: $e');
+          await Future.delayed(const Duration(milliseconds: 500));
+          continue;
+        }
+        throw EmotionApiException('Network error: $e');
       }
-
-      final response = await _client
-          .post(uri, headers: headers, body: encodedBody)
-          .timeout(_timeout);
-
-      debugPrint('[$label] 📥 Status: ${response.statusCode}');
-      debugPrint('[$label] Response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        return response.body;
-      } else if (response.statusCode == 401) {
-        throw EmotionApiException(
-          'Unauthorized. Silakan login ulang.',
-          statusCode: 401,
-          responseBody: response.body,
-        );
-      } else if (response.statusCode == 404) {
-        throw EmotionApiException(
-          'Session not found. Mulai session baru.',
-          statusCode: 404,
-          responseBody: response.body,
-        );
-      } else {
-        throw EmotionApiException(
-          'Server error: ${response.statusCode}',
-          statusCode: response.statusCode,
-          responseBody: response.body,
-        );
-      }
-    } on EmotionApiException {
-      rethrow;
-    } catch (e) {
-      throw EmotionApiException('Network error: $e');
     }
+    throw EmotionApiException('Request failed after retries');
   }
 
   void dispose() {
@@ -346,9 +348,12 @@ class EmotionResult {
 
 class CombinedEmotionResult {
   CombinedEmotionResult({
-    required this.sessionId, required this.faceEmotion,
-    required this.motionEmotion, required this.finalEmotion,
-    required this.weightFace, required this.weightMotion,
+    required this.sessionId,
+    required this.faceEmotion,
+    required this.motionEmotion,
+    required this.finalEmotion,
+    required this.weightFace,
+    required this.weightMotion,
     required this.greeting,
   });
   final String sessionId;
@@ -368,8 +373,10 @@ class SessionStartResult {
 
 class ChatResult {
   ChatResult({
-    required this.sessionId, required this.userMessage,
-    required this.textPrediction, required this.assistantReply,
+    required this.sessionId,
+    required this.userMessage,
+    required this.textPrediction,
+    required this.assistantReply,
   });
   final String sessionId;
   final String userMessage;

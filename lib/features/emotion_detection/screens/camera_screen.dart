@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -17,6 +18,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../screens/detection_error_screen.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Top-level data classes & functions for compute() isolate
@@ -198,6 +200,12 @@ class _CameraScreenState extends State<CameraScreen> {
   int _imageHeight = 0;
   int _sensorOrientation = 0;
 
+  // ── Detection timeout ───────────────────────────────────────────────────
+  static const int _detectionTimeoutSeconds = 15;
+  Timer? _timeoutTimer;
+  Timer? _countdownTimer;
+  int _secondsRemaining = _detectionTimeoutSeconds;
+
   // ── Hand Landmark / BISINDO Sign Language ──────────────────────────────
   HandLandmarkService? _handLandmarkService;
   final BisindoFeatureExtractor _featureExtractor = BisindoFeatureExtractor();
@@ -220,14 +228,47 @@ class _CameraScreenState extends State<CameraScreen> {
     _initFaceDetector();
     _initHandLandmarkService();
     _initializeCamera();
+    _startDetectionTimeout();
   }
 
   @override
   void dispose() {
+    _timeoutTimer?.cancel();
+    _countdownTimer?.cancel();
     _cameraController?.dispose();
     _faceDetector.close();
     _handLandmarkService?.dispose();
     super.dispose();
+  }
+
+  /// Mulai timer timeout deteksi. Jika 15 detik berlalu tanpa
+  /// wajah terdeteksi, navigasi ke error screen.
+  void _startDetectionTimeout() {
+    _secondsRemaining = _detectionTimeoutSeconds;
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _secondsRemaining = _detectionTimeoutSeconds - timer.tick;
+      });
+    });
+
+    _timeoutTimer = Timer(Duration(seconds: _detectionTimeoutSeconds), () {
+      _countdownTimer?.cancel();
+      if (mounted && !_faceDetected) {
+        _cameraController?.stopImageStream().catchError((_) {});
+        context.go(AppRoutes.detectionError, extra: DetectionErrorType.faceNotDetected);
+      }
+    });
+  }
+
+  /// Cancel timeout saat deteksi berhasil (user menekan kirim).
+  void _cancelDetectionTimeout() {
+    _timeoutTimer?.cancel();
+    _countdownTimer?.cancel();
   }
 
   // ────────────────────────────────────────────────────────────────────────
@@ -567,6 +608,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Future<void> _onSendPressed() async {
     if (_isSending) return;
+    _cancelDetectionTimeout();
     setState(() => _isSending = true);
 
     try {
@@ -663,36 +705,36 @@ class _CameraScreenState extends State<CameraScreen> {
               Positioned.fill(
                 child: _isCameraInitialized && _cameraController != null
                     ? OverflowBox(
-                  alignment: Alignment.center,
-                  child: FittedBox(
-                    fit: BoxFit.cover,
-                    child: SizedBox(
-                      width: _cameraController!.value.previewSize?.height ?? 1,
-                      height: _cameraController!.value.previewSize?.width ?? 1,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CameraPreview(_cameraController!),
-                          if (_faceDetected && _faceBoundingBox != null)
-                            CustomPaint(
-                              painter: _FaceBoundingBoxPainter(
-                                boundingBox: _faceBoundingBox!,
-                                imageWidth: _imageWidth,
-                                imageHeight: _imageHeight,
-                                sensorOrientation: _sensorOrientation,
-                              ),
+                        alignment: Alignment.center,
+                        child: FittedBox(
+                          fit: BoxFit.cover,
+                          child: SizedBox(
+                            width: _cameraController!.value.previewSize?.height ?? 1,
+                            height: _cameraController!.value.previewSize?.width ?? 1,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CameraPreview(_cameraController!),
+                                if (_faceDetected && _faceBoundingBox != null)
+                                  CustomPaint(
+                                    painter: _FaceBoundingBoxPainter(
+                                      boundingBox: _faceBoundingBox!,
+                                      imageWidth: _imageWidth,
+                                      imageHeight: _imageHeight,
+                                      sensorOrientation: _sensorOrientation,
+                                    ),
+                                  ),
+                              ],
                             ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
+                          ),
+                        ),
+                      )
                     : Container(
-                  color: Colors.black,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF41B37E)),
-                  ),
-                ),
+                        color: Colors.black,
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Color(0xFF41B37E)),
+                        ),
+                      ),
               ),
 
               // ── Face status indicator ──────────────────────────────
@@ -719,7 +761,9 @@ class _CameraScreenState extends State<CameraScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          _faceDetected ? 'Wajah Terdeteksi' : 'Wajah Tidak Terdeteksi',
+                          _faceDetected
+                              ? 'Wajah Terdeteksi'
+                              : 'Wajah Tidak Terdeteksi (${_secondsRemaining}s)',
                           style: const TextStyle(
                             fontFamily: AppFonts.sfProRounded,
                             fontSize: 13,

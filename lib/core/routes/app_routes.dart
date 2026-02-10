@@ -29,6 +29,9 @@ class AppRoutes {
   static const String chat = '/chat';
   static const String chatFromCamera = '/chat-from-camera';
 
+  // Error
+  static const String detectionError = '/detection-error';
+
   // Profile & Settings
   static const String profile = '/profile';
   static const String editProfile = '/edit-profile';

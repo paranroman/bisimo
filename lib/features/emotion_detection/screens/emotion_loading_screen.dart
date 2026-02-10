@@ -3,10 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../providers/api_provider.dart';
 import '../services/emotion_api_service.dart';
+import '../screens/detection_error_screen.dart';
 
 class EmotionLoadingScreen extends StatefulWidget {
   const EmotionLoadingScreen({super.key, this.faceImageBytes, this.motionSequence});
@@ -23,12 +26,13 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   late AnimationController _dotsController;
   int _dotCount = 0;
 
-  // Use the global service instance
-  final EmotionApiService _emotionApi = service;
+  late final EmotionApiService _emotionApi;
 
   @override
   void initState() {
     super.initState();
+
+    _emotionApi = context.read<ApiProvider>().emotionApi;
 
     _waveController = AnimationController(duration: const Duration(milliseconds: 1500), vsync: this)
       ..repeat();
@@ -50,12 +54,18 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   Future<void> _detectAndNavigate() async {
     final stopwatch = Stopwatch()..start();
 
-    // Both face and motion data are required for the combined endpoint
-    if (widget.faceImageBytes == null || widget.motionSequence == null) {
-      debugPrint('[EmotionLoading] ❌ Missing face or motion data. Cannot proceed.');
-      // Navigate to chat with no emotion data (or show an error)
+    // Validate required data — navigate to error screen if missing
+    if (widget.faceImageBytes == null) {
+      debugPrint('[EmotionLoading] ❌ Missing face data.');
       if (mounted) {
-        context.go(AppRoutes.chat);
+        context.go(AppRoutes.detectionError, extra: DetectionErrorType.faceNotDetected);
+      }
+      return;
+    }
+    if (widget.motionSequence == null) {
+      debugPrint('[EmotionLoading] ❌ Missing motion data.');
+      if (mounted) {
+        context.go(AppRoutes.detectionError, extra: DetectionErrorType.handNotDetected);
       }
       return;
     }
@@ -85,9 +95,9 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
       if (elapsed < 2000) {
         await Future.delayed(Duration(milliseconds: 2000 - elapsed));
       }
-      // On error, navigate to chat without emotion data
+      // On error, navigate to detection error screen
       if (mounted) {
-        context.go(AppRoutes.chat);
+        context.go(AppRoutes.detectionError, extra: DetectionErrorType.apiError);
       }
     }
   }
@@ -96,7 +106,6 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   void dispose() {
     _waveController.dispose();
     _dotsController.dispose();
-    // Do not dispose the global service instance here
     super.dispose();
   }
 
