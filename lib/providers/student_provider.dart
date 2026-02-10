@@ -54,9 +54,7 @@ class StudentProvider extends ChangeNotifier {
       notifyListeners();
       return result;
     } catch (e) {
-      final result = CreateStudentResult.failure(
-        message: 'Terjadi kesalahan. Silakan coba lagi.',
-      );
+      final result = CreateStudentResult.failure(message: 'Terjadi kesalahan. Silakan coba lagi.');
       _lastCreateResult = result;
       _setError(result.message!);
       notifyListeners();
@@ -97,16 +95,20 @@ class StudentProvider extends ChangeNotifier {
       final result = await _repository.regenerateToken(studentId);
       _lastCreateResult = result;
 
-      if (!result.isSuccess) {
+      if (result.isSuccess && result.student != null) {
+        // Update the local student list with the new token hash
+        final index = _students.indexWhere((s) => s.id == studentId);
+        if (index != -1) {
+          _students[index] = result.student!;
+        }
+      } else if (!result.isSuccess) {
         _setError(result.message ?? 'Gagal memperbarui token.');
       }
 
       notifyListeners();
       return result;
     } catch (e) {
-      final result = CreateStudentResult.failure(
-        message: 'Terjadi kesalahan. Silakan coba lagi.',
-      );
+      final result = CreateStudentResult.failure(message: 'Terjadi kesalahan. Silakan coba lagi.');
       _lastCreateResult = result;
       _setError(result.message!);
       notifyListeners();

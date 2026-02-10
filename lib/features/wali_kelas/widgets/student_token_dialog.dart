@@ -6,15 +6,17 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../data/models/student_model.dart';
 
 /// Dialog showing the generated token for a student
-/// This is the ONLY time the plain token is visible
+/// Used for both new student creation and token regeneration
 class StudentTokenDialog extends StatelessWidget {
   final StudentModel student;
   final String plainToken;
+  final bool isRegeneration;
 
   const StudentTokenDialog({
     super.key,
     required this.student,
     required this.plainToken,
+    this.isRegeneration = false,
   });
 
   void _copyToken(BuildContext context) {
@@ -42,22 +44,15 @@ class StudentTokenDialog extends StatelessWidget {
               Container(
                 width: 60,
                 height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF41B37E),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                decoration: const BoxDecoration(color: Color(0xFF41B37E), shape: BoxShape.circle),
+                child: const Icon(Icons.check, color: Colors.white, size: 32),
               ),
               const SizedBox(height: 16),
 
               // Title
-              const Text(
-                'Murid Berhasil Ditambahkan!',
-                style: TextStyle(
+              Text(
+                isRegeneration ? 'Token Baru Berhasil Dibuat!' : 'Murid Berhasil Ditambahkan!',
+                style: const TextStyle(
                   fontFamily: AppFonts.sfProRounded,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -178,9 +173,7 @@ class StudentTokenDialog extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF41B37E),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text(
                     'Selesai',

@@ -21,11 +21,11 @@ class StudentRepository {
   String _generatePlainToken() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluded I, O, 0, 1 to avoid confusion
     final random = Random.secure();
-    
+
     String generatePart(int length) {
       return List.generate(length, (_) => chars[random.nextInt(chars.length)]).join();
     }
-    
+
     return '${generatePart(3)}-${generatePart(3)}';
   }
 
@@ -77,9 +77,7 @@ class StudentRepository {
       );
 
       // Create editable profile with nickname
-      final editableProfile = EditableProfile(
-        nickname: data.namaPanggilan,
-      );
+      final editableProfile = EditableProfile(nickname: data.namaPanggilan);
 
       final student = StudentModel(
         id: docRef.id,
@@ -103,14 +101,10 @@ class StudentRepository {
       );
     } on FirebaseException catch (e) {
       debugPrint('StudentRepository: Firebase error - ${e.message}');
-      return CreateStudentResult.failure(
-        message: 'Gagal menambah murid: ${e.message}',
-      );
+      return CreateStudentResult.failure(message: 'Gagal menambah murid: ${e.message}');
     } catch (e) {
       debugPrint('StudentRepository: Error - $e');
-      return CreateStudentResult.failure(
-        message: 'Terjadi kesalahan. Silakan coba lagi.',
-      );
+      return CreateStudentResult.failure(message: 'Terjadi kesalahan. Silakan coba lagi.');
     }
   }
 
@@ -153,10 +147,12 @@ class StudentRepository {
         .where('waliId', isEqualTo: currentUser.uid)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return StudentModel.fromMap(data, doc.id);
-            }).toList());
+        .map(
+          (snapshot) => snapshot.docs.map((doc) {
+            final data = doc.data();
+            return StudentModel.fromMap(data, doc.id);
+          }).toList(),
+        );
   }
 
   /// Verify student login token
@@ -180,17 +176,17 @@ class StudentRepository {
 
       final doc = snapshot.docs.first;
       debugPrint('StudentRepository: Found student ${doc.id}');
-      
+
       // Try to update last login time, but don't fail if it doesn't work
       // (student might not be authenticated yet for Logical Auth)
       try {
-        await doc.reference.update({
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+        await doc.reference.update({'updatedAt': FieldValue.serverTimestamp()});
         debugPrint('StudentRepository: Updated last login time');
       } catch (updateError) {
         // Ignore update errors - the student document was found, that's what matters
-        debugPrint('StudentRepository: Could not update last login time (expected for Logical Auth): $updateError');
+        debugPrint(
+          'StudentRepository: Could not update last login time (expected for Logical Auth): $updateError',
+        );
       }
 
       final data = doc.data();
@@ -252,9 +248,7 @@ class StudentRepository {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser == null) {
-        return CreateStudentResult.failure(
-          message: 'Anda harus login sebagai Wali Kelas.',
-        );
+        return CreateStudentResult.failure(message: 'Anda harus login sebagai Wali Kelas.');
       }
 
       // Get student document
@@ -268,16 +262,26 @@ class StudentRepository {
 
       // Verify ownership
       if (student.waliId != currentUser.uid) {
-        return CreateStudentResult.failure(
-          message: 'Anda tidak memiliki akses ke murid ini.',
-        );
+        return CreateStudentResult.failure(message: 'Anda tidak memiliki akses ke murid ini.');
       }
 
-      // Generate new token
-      final plainToken = _generatePlainToken();
-      final hashedToken = _hashToken(plainToken);
+      // Generate new token with collision check
+      String plainToken = _generatePlainToken();
+      String hashedToken = _hashToken(plainToken);
 
-      // Update in Firestore
+      // Check for collision (extremely rare but consistent with createStudentAccount)
+      final existingToken = await _studentsCollection
+          .where('loginTokenHash', isEqualTo: hashedToken)
+          .limit(1)
+          .get();
+
+      if (existingToken.docs.isNotEmpty) {
+        // Regenerate if collision
+        plainToken = _generatePlainToken();
+        hashedToken = _hashToken(plainToken);
+      }
+
+      // Update ONLY the token hash in Firestore — all profile data stays intact
       await _studentsCollection.doc(studentId).update({
         'loginTokenHash': hashedToken,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -291,9 +295,7 @@ class StudentRepository {
       );
     } catch (e) {
       debugPrint('StudentRepository: Error regenerating token - $e');
-      return CreateStudentResult.failure(
-        message: 'Gagal memperbarui token. Silakan coba lagi.',
-      );
+      return CreateStudentResult.failure(message: 'Gagal memperbarui token. Silakan coba lagi.');
     }
   }
 

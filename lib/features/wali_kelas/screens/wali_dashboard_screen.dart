@@ -68,11 +68,15 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
     }
   }
 
-  void _showTokenDialog(StudentModel student, String plainToken) {
+  void _showTokenDialog(StudentModel student, String plainToken, {bool isRegeneration = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => StudentTokenDialog(student: student, plainToken: plainToken),
+      builder: (context) => StudentTokenDialog(
+        student: student,
+        plainToken: plainToken,
+        isRegeneration: isRegeneration,
+      ),
     );
   }
 
@@ -110,7 +114,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
     if (confirm == true && mounted) {
       final result = await context.read<StudentProvider>().regenerateToken(student.id);
       if (result.isSuccess && mounted) {
-        _showTokenDialog(result.student!, result.plainToken!);
+        _showTokenDialog(result.student!, result.plainToken!, isRegeneration: true);
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
