@@ -8,8 +8,24 @@ class EditableProfile {
   final String? nickname;
   final List<String> hobbies;
   final String? favoriteColor;
+  final String? photoUrl; // Base64 encoded or network URL
+  final String? favoriteAnimal; // Hewan kesukaan
+  final String? dreamJob; // Cita-cita
+  final String? favoriteFood; // Makanan kesukaan
+  final String? favoriteSubject; // Mata pelajaran favorit
+  final String? bio; // Tentang saya
 
-  const EditableProfile({this.nickname, this.hobbies = const [], this.favoriteColor});
+  const EditableProfile({
+    this.nickname,
+    this.hobbies = const [],
+    this.favoriteColor,
+    this.photoUrl,
+    this.favoriteAnimal,
+    this.dreamJob,
+    this.favoriteFood,
+    this.favoriteSubject,
+    this.bio,
+  });
 
   factory EditableProfile.empty() => const EditableProfile();
 
@@ -19,18 +35,50 @@ class EditableProfile {
       nickname: data['nickname'] as String?,
       hobbies: (data['hobbies'] as List<dynamic>?)?.cast<String>() ?? [],
       favoriteColor: data['favoriteColor'] as String?,
+      photoUrl: data['photoUrl'] as String?,
+      favoriteAnimal: data['favoriteAnimal'] as String?,
+      dreamJob: data['dreamJob'] as String?,
+      favoriteFood: data['favoriteFood'] as String?,
+      favoriteSubject: data['favoriteSubject'] as String?,
+      bio: data['bio'] as String?,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {'nickname': nickname, 'hobbies': hobbies, 'favoriteColor': favoriteColor};
+    return {
+      'nickname': nickname,
+      'hobbies': hobbies,
+      'favoriteColor': favoriteColor,
+      'photoUrl': photoUrl,
+      'favoriteAnimal': favoriteAnimal,
+      'dreamJob': dreamJob,
+      'favoriteFood': favoriteFood,
+      'favoriteSubject': favoriteSubject,
+      'bio': bio,
+    };
   }
 
-  EditableProfile copyWith({String? nickname, List<String>? hobbies, String? favoriteColor}) {
+  EditableProfile copyWith({
+    String? nickname,
+    List<String>? hobbies,
+    String? favoriteColor,
+    String? photoUrl,
+    String? favoriteAnimal,
+    String? dreamJob,
+    String? favoriteFood,
+    String? favoriteSubject,
+    String? bio,
+  }) {
     return EditableProfile(
       nickname: nickname ?? this.nickname,
       hobbies: hobbies ?? this.hobbies,
       favoriteColor: favoriteColor ?? this.favoriteColor,
+      photoUrl: photoUrl ?? this.photoUrl,
+      favoriteAnimal: favoriteAnimal ?? this.favoriteAnimal,
+      dreamJob: dreamJob ?? this.dreamJob,
+      favoriteFood: favoriteFood ?? this.favoriteFood,
+      favoriteSubject: favoriteSubject ?? this.favoriteSubject,
+      bio: bio ?? this.bio,
     );
   }
 }

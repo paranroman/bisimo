@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
@@ -8,6 +9,7 @@ import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
 import '../../../data/models/user_profile.dart';
+import '../../../providers/auth_provider.dart';
 import '../services/profile_service.dart';
 
 /// Profile Data Screen - User fills personal information after registration
@@ -123,8 +125,10 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     setState(() => _isLoading = false);
 
     if (mounted) {
+      // Notify AuthProvider that profile data is complete
+      context.read<AuthProvider>().markProfileDataCompleted();
       _showSnackBar('Data berhasil disimpan!');
-      context.go(AppRoutes.home);
+      context.go(AppRoutes.waliDashboard);
     }
   }
 

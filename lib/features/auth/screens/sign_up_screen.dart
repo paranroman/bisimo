@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
 import '../../../shared/widgets/icons/google_icon.dart';
-import '../services/auth_service.dart';
 
 /// Sign Up Screen - Teacher registration page
 class SignUpScreen extends StatefulWidget {
@@ -21,7 +22,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = AuthService();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -60,21 +60,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _isLoading = true);
 
-    final result = await _authService.signUp(
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signUp(_emailController.text, _passwordController.text);
 
     setState(() => _isLoading = false);
 
-    if (result.isSuccess) {
+    if (success) {
       if (mounted) {
         _showSnackBar('Akun berhasil dibuat!');
-        // Wali goes to Dashboard
-        context.go(AppRoutes.waliDashboard);
+        // New accounts always need profile data
+        context.go(AppRoutes.profileData);
       }
     } else {
-      _showSnackBar(result.message ?? 'Pendaftaran gagal');
+      _showSnackBar(authProvider.errorMessage ?? 'Pendaftaran gagal');
     }
   }
 
@@ -82,15 +80,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isGoogleLoading = true);
 
     try {
-      final result = await _authService.signInWithGoogle();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.signInWithGoogle();
 
       if (!mounted) return;
 
-      if (result.isSuccess) {
-        // Wali goes to Dashboard
-        context.go(AppRoutes.waliDashboard);
+      if (success) {
+        if (authProvider.needsProfileData) {
+          context.go(AppRoutes.profileData);
+        } else {
+          context.go(AppRoutes.waliDashboard);
+        }
       } else {
-        _showSnackBar(result.message ?? 'Gagal mendaftar dengan Google');
+        _showSnackBar(authProvider.errorMessage ?? 'Gagal mendaftar dengan Google');
       }
     } catch (e) {
       if (mounted) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
@@ -75,6 +76,75 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     setState(() {
       _isTorchOn = !_isTorchOn;
     });
+  }
+
+  /// Pick QR image from gallery and decode it
+  Future<void> _pickFromGallery() async {
+    if (_hasScanned) return;
+
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) return;
+
+      final result = await _controller.analyzeImage(pickedFile.path);
+
+      final barcodes = result?.barcodes ?? [];
+      if (barcodes.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'QR Code tidak ditemukan pada gambar',
+                style: TextStyle(fontFamily: 'SF Pro Rounded'),
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+
+      for (final barcode in barcodes) {
+        final code = barcode.rawValue;
+        if (code != null && _isValidTokenFormat(code)) {
+          setState(() {
+            _hasScanned = true;
+            _scannedCode = code;
+          });
+          _showSuccessAndReturn(code);
+          return;
+        }
+      }
+
+      // Barcodes found but none is a valid token
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'QR Code tidak berisi token yang valid',
+              style: TextStyle(fontFamily: 'SF Pro Rounded'),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Gagal membaca gambar. Coba lagi.',
+              style: TextStyle(fontFamily: 'SF Pro Rounded'),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -243,20 +313,45 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // Manual input hint
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Atau ketik kode secara manual',
-                style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primaryLight,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppColors.primaryLight,
+            // Gallery & manual input row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Pick from gallery button
+                TextButton.icon(
+                  onPressed: _pickFromGallery,
+                  icon: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 18),
+                  label: const Text(
+                    'Pilih dari Galeri',
+                    style: TextStyle(
+                      fontFamily: AppFonts.sfProRounded,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Container(width: 1, height: 16, color: Colors.white38),
+                const SizedBox(width: 8),
+                // Manual input hint
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Ketik Manual',
+                    style: TextStyle(
+                      fontFamily: AppFonts.sfProRounded,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

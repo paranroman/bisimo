@@ -43,7 +43,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _loadProfile() async {
     final profile = await _profileService.getProfile();
     final currentUser = FirebaseAuth.instance.currentUser;
-    
+
     if (mounted) {
       setState(() {
         _profile = profile;
@@ -157,13 +157,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    if (_selectedGender != null && _namaController.text.isNotEmpty) {
+    // Allow saving with just the name OR just the gender
+    final nama = _namaController.text.trim();
+    if (nama.isEmpty && _selectedGender == null) return;
+
+    try {
       final updatedProfile = UserProfile(
         uid: _profile?.uid,
-        nama: _namaController.text,
-        namaPanggilan: _namaController.text, // Use nama as namaPanggilan
+        nama: nama.isNotEmpty ? nama : (_profile?.nama ?? ''),
+        namaPanggilan: nama.isNotEmpty ? nama : (_profile?.namaPanggilan ?? ''),
         tanggalLahir: _profile?.tanggalLahir ?? DateTime(2000, 1, 1),
-        jenisKelamin: _selectedGender!,
+        jenisKelamin: _selectedGender ?? _profile?.jenisKelamin ?? '',
         tingkatPendidikan: _profile?.tingkatPendidikan ?? '',
         namaOrangTua: _profile?.namaOrangTua ?? '',
         kontakOrangTua: _profile?.kontakOrangTua ?? '',
@@ -171,7 +175,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         photoUrl: _profile?.photoUrl,
       );
       await _profileService.saveProfile(updatedProfile);
-      setState(() => _profile = updatedProfile);
+      if (mounted) {
+        setState(() => _profile = updatedProfile);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Profil berhasil disimpan!',
+              style: TextStyle(fontFamily: AppFonts.sfProRounded),
+            ),
+            backgroundColor: const Color(0xFF41B37E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal menyimpan: $e',
+              style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+            ),
+            backgroundColor: AppColors.textPrimary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
     }
   }
 
@@ -306,7 +337,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildProfileAvatar() {
     final currentUser = FirebaseAuth.instance.currentUser;
     final photoUrl = _profile?.photoUrl ?? currentUser?.photoURL;
-    
+
     if (photoUrl != null && photoUrl.isNotEmpty) {
       // Show Google/Firebase profile photo
       return Stack(
@@ -337,7 +368,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                       color: const Color(0xFF41B37E),
                       strokeWidth: 2,
@@ -360,7 +391,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ],
       );
     }
-    
+
     // Default Cimo avatar when no photo
     return _buildDefaultAvatar();
   }

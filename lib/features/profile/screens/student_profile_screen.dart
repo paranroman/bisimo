@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,16 +24,21 @@ class StudentProfileScreen extends StatefulWidget {
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
   final _studentRepository = StudentRepository();
   final _imagePicker = ImagePicker();
-  
+
   bool _isLoading = true;
   bool _isSaving = false;
   StudentModel? _student;
   File? _selectedImage;
-  
+
   // Editable fields controllers
   late TextEditingController _nicknameController;
   late TextEditingController _hobbiesController;
   late TextEditingController _favoriteColorController;
+  late TextEditingController _favoriteAnimalController;
+  late TextEditingController _dreamJobController;
+  late TextEditingController _favoriteFoodController;
+  late TextEditingController _favoriteSubjectController;
+  late TextEditingController _bioController;
 
   @override
   void initState() {
@@ -40,6 +46,11 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     _nicknameController = TextEditingController();
     _hobbiesController = TextEditingController();
     _favoriteColorController = TextEditingController();
+    _favoriteAnimalController = TextEditingController();
+    _dreamJobController = TextEditingController();
+    _favoriteFoodController = TextEditingController();
+    _favoriteSubjectController = TextEditingController();
+    _bioController = TextEditingController();
     _loadStudentData();
   }
 
@@ -48,6 +59,11 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     _nicknameController.dispose();
     _hobbiesController.dispose();
     _favoriteColorController.dispose();
+    _favoriteAnimalController.dispose();
+    _dreamJobController.dispose();
+    _favoriteFoodController.dispose();
+    _favoriteSubjectController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -71,9 +87,15 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
 
   void _populateFields() {
     if (_student != null) {
-      _nicknameController.text = _student!.editableProfile.nickname ?? '';
-      _hobbiesController.text = _student!.editableProfile.hobbies.join(', ');
-      _favoriteColorController.text = _student!.editableProfile.favoriteColor ?? '';
+      final ep = _student!.editableProfile;
+      _nicknameController.text = ep.nickname ?? '';
+      _hobbiesController.text = ep.hobbies.join(', ');
+      _favoriteColorController.text = ep.favoriteColor ?? '';
+      _favoriteAnimalController.text = ep.favoriteAnimal ?? '';
+      _dreamJobController.text = ep.dreamJob ?? '';
+      _favoriteFoodController.text = ep.favoriteFood ?? '';
+      _favoriteSubjectController.text = ep.favoriteSubject ?? '';
+      _bioController.text = ep.bio ?? '';
     }
   }
 
@@ -99,17 +121,14 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0xFF41B37E)),
-              title: const Text(
-                'Kamera',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded),
-              ),
+              title: const Text('Kamera', style: TextStyle(fontFamily: AppFonts.sfProRounded)),
               onTap: () async {
                 Navigator.pop(context);
                 final image = await _imagePicker.pickImage(
                   source: ImageSource.camera,
-                  maxWidth: 512,
-                  maxHeight: 512,
-                  imageQuality: 75,
+                  maxWidth: 256,
+                  maxHeight: 256,
+                  imageQuality: 50,
                 );
                 if (image != null) {
                   setState(() => _selectedImage = File(image.path));
@@ -118,17 +137,14 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Color(0xFF41B37E)),
-              title: const Text(
-                'Galeri',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded),
-              ),
+              title: const Text('Galeri', style: TextStyle(fontFamily: AppFonts.sfProRounded)),
               onTap: () async {
                 Navigator.pop(context);
                 final image = await _imagePicker.pickImage(
                   source: ImageSource.gallery,
-                  maxWidth: 512,
-                  maxHeight: 512,
-                  imageQuality: 75,
+                  maxWidth: 256,
+                  maxHeight: 256,
+                  imageQuality: 50,
                 );
                 if (image != null) {
                   setState(() => _selectedImage = File(image.path));
@@ -141,12 +157,40 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
   }
 
+  /// Convert selected image to base64 data URI for Firestore storage
+  Future<String?> _encodeImageToBase64() async {
+    if (_selectedImage == null) return null;
+    try {
+      final bytes = await _selectedImage!.readAsBytes();
+      // Limit to ~100KB after compression to stay within Firestore doc limits
+      if (bytes.length > 100 * 1024) {
+        if (mounted) {
+          _showSnackBar('Foto terlalu besar. Coba foto lain yang lebih kecil.');
+        }
+        return null;
+      }
+      return 'data:image/jpeg;base64,${base64Encode(bytes)}';
+    } catch (e) {
+      debugPrint('Error encoding image: $e');
+      return null;
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (_student == null) return;
 
     setState(() => _isSaving = true);
 
     try {
+      // Handle photo upload as base64
+      String? photoUrl = _student!.editableProfile.photoUrl;
+      if (_selectedImage != null) {
+        final encoded = await _encodeImageToBase64();
+        if (encoded != null) {
+          photoUrl = encoded;
+        }
+      }
+
       // Parse hobbies from comma-separated string
       final hobbies = _hobbiesController.text
           .split(',')
@@ -154,21 +198,33 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           .where((h) => h.isNotEmpty)
           .toList();
 
-      // Create updated editable profile
+      // Create updated editable profile with ALL fields
       final updatedEditableProfile = EditableProfile(
-        nickname: _nicknameController.text.trim().isNotEmpty 
-            ? _nicknameController.text.trim() 
+        nickname: _nicknameController.text.trim().isNotEmpty
+            ? _nicknameController.text.trim()
             : null,
         hobbies: hobbies,
-        favoriteColor: _favoriteColorController.text.trim().isNotEmpty 
-            ? _favoriteColorController.text.trim() 
+        favoriteColor: _favoriteColorController.text.trim().isNotEmpty
+            ? _favoriteColorController.text.trim()
             : null,
+        photoUrl: photoUrl,
+        favoriteAnimal: _favoriteAnimalController.text.trim().isNotEmpty
+            ? _favoriteAnimalController.text.trim()
+            : null,
+        dreamJob: _dreamJobController.text.trim().isNotEmpty
+            ? _dreamJobController.text.trim()
+            : null,
+        favoriteFood: _favoriteFoodController.text.trim().isNotEmpty
+            ? _favoriteFoodController.text.trim()
+            : null,
+        favoriteSubject: _favoriteSubjectController.text.trim().isNotEmpty
+            ? _favoriteSubjectController.text.trim()
+            : null,
+        bio: _bioController.text.trim().isNotEmpty ? _bioController.text.trim() : null,
       );
 
       // Create updated student model
-      final updatedStudent = _student!.copyWith(
-        editableProfile: updatedEditableProfile,
-      );
+      final updatedStudent = _student!.copyWith(editableProfile: updatedEditableProfile);
 
       // Save to Firestore
       final success = await _studentRepository.updateStudentEditableProfile(
@@ -180,7 +236,13 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         if (success) {
           setState(() {
             _student = updatedStudent;
+            _selectedImage = null; // Clear after successful save
           });
+
+          // Refresh the session in AuthProvider so data persists across app restarts
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          await authProvider.refreshStudentSession();
+
           _showSnackBar('Profil berhasil disimpan!', isSuccess: true);
         } else {
           _showSnackBar('Gagal menyimpan profil. Coba lagi.');
@@ -216,8 +278,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF41B37E)))
           : _student == null
-              ? _buildNoData()
-              : _buildBody(),
+          ? _buildNoData()
+          : _buildBody(),
     );
   }
 
@@ -279,20 +341,25 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     const SizedBox(height: 12),
                     _buildLockedField(
                       label: 'Nama Lengkap',
-                      value: _student!.lockedProfile.fullName.isNotEmpty 
-                          ? _student!.lockedProfile.fullName 
+                      value: _student!.lockedProfile.fullName.isNotEmpty
+                          ? _student!.lockedProfile.fullName
                           : '-',
                     ),
                     _buildLockedField(
                       label: 'Tanggal Lahir',
                       value: _student!.lockedProfile.birthDate != null
-                          ? DateFormat('dd MMMM yyyy', 'id_ID').format(_student!.lockedProfile.birthDate!)
+                          ? DateFormat(
+                              'dd MMMM yyyy',
+                              'id_ID',
+                            ).format(_student!.lockedProfile.birthDate!)
                           : '-',
                     ),
                     _buildLockedField(
                       label: 'Jenis Kelamin',
                       value: _student!.lockedProfile.gender != null
-                          ? (_student!.lockedProfile.gender == Gender.male ? 'Laki-laki' : 'Perempuan')
+                          ? (_student!.lockedProfile.gender == Gender.male
+                                ? 'Laki-laki'
+                                : 'Perempuan')
                           : '-',
                       showDivider: false,
                     ),
@@ -304,24 +371,78 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     const SizedBox(height: 12),
                     _buildEditableField(
                       label: 'Nama Panggilan',
-                      value: _nicknameController.text.isNotEmpty 
-                          ? _nicknameController.text 
+                      value: _nicknameController.text.isNotEmpty
+                          ? _nicknameController.text
                           : 'Belum diisi',
                       onTap: _editNickname,
                     ),
                     _buildEditableField(
+                      label: 'Tentang Saya',
+                      value: _bioController.text.isNotEmpty ? _bioController.text : 'Belum diisi',
+                      onTap: () => _editGenericField(
+                        title: 'Tentang Saya',
+                        controller: _bioController,
+                        hint: 'Ceritakan tentang dirimu...',
+                        maxLines: 3,
+                      ),
+                    ),
+                    _buildEditableField(
                       label: 'Hobi',
-                      value: _hobbiesController.text.isNotEmpty 
-                          ? _hobbiesController.text 
+                      value: _hobbiesController.text.isNotEmpty
+                          ? _hobbiesController.text
                           : 'Belum diisi',
                       onTap: _editHobbies,
                     ),
                     _buildEditableField(
                       label: 'Warna Favorit',
-                      value: _favoriteColorController.text.isNotEmpty 
-                          ? _favoriteColorController.text 
+                      value: _favoriteColorController.text.isNotEmpty
+                          ? _favoriteColorController.text
                           : 'Belum diisi',
                       onTap: _editFavoriteColor,
+                    ),
+                    _buildEditableField(
+                      label: 'Hewan Kesukaan',
+                      value: _favoriteAnimalController.text.isNotEmpty
+                          ? _favoriteAnimalController.text
+                          : 'Belum diisi',
+                      onTap: () => _editGenericField(
+                        title: 'Edit Hewan Kesukaan',
+                        controller: _favoriteAnimalController,
+                        hint: 'Contoh: Kucing, Kelinci, Lumba-lumba',
+                      ),
+                    ),
+                    _buildEditableField(
+                      label: 'Makanan Kesukaan',
+                      value: _favoriteFoodController.text.isNotEmpty
+                          ? _favoriteFoodController.text
+                          : 'Belum diisi',
+                      onTap: () => _editGenericField(
+                        title: 'Edit Makanan Kesukaan',
+                        controller: _favoriteFoodController,
+                        hint: 'Contoh: Nasi Goreng, Bakso, Es Krim',
+                      ),
+                    ),
+                    _buildEditableField(
+                      label: 'Cita-cita',
+                      value: _dreamJobController.text.isNotEmpty
+                          ? _dreamJobController.text
+                          : 'Belum diisi',
+                      onTap: () => _editGenericField(
+                        title: 'Edit Cita-cita',
+                        controller: _dreamJobController,
+                        hint: 'Contoh: Dokter, Guru, Astronot',
+                      ),
+                    ),
+                    _buildEditableField(
+                      label: 'Pelajaran Favorit',
+                      value: _favoriteSubjectController.text.isNotEmpty
+                          ? _favoriteSubjectController.text
+                          : 'Belum diisi',
+                      onTap: () => _editGenericField(
+                        title: 'Edit Pelajaran Favorit',
+                        controller: _favoriteSubjectController,
+                        hint: 'Contoh: Matematika, IPA, Seni',
+                      ),
                       showDivider: false,
                     ),
 
@@ -345,6 +466,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     final fullName = _student?.lockedProfile.fullName ?? 'Murid';
     final nickname = _student?.editableProfile.nickname;
     final displayName = (nickname != null && nickname.isNotEmpty) ? nickname : fullName;
+    final photoUrl = _student?.editableProfile.photoUrl;
 
     return Container(
       decoration: const BoxDecoration(
@@ -409,21 +531,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                         ),
                       ],
                     ),
-                    child: ClipOval(
-                      child: _selectedImage != null
-                          ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                          : Center(
-                              child: Text(
-                                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                                style: const TextStyle(
-                                  fontFamily: AppFonts.baloo2,
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF41B37E),
-                                ),
-                              ),
-                            ),
-                    ),
+                    child: ClipOval(child: _buildAvatarContent(displayName, photoUrl)),
                   ),
                   // Camera icon
                   Container(
@@ -467,6 +575,51 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
 
             const SizedBox(height: 30),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Build avatar content: selected file > base64 from DB > initial letter
+  Widget _buildAvatarContent(String displayName, String? photoUrl) {
+    // Show newly selected image (not yet saved)
+    if (_selectedImage != null) {
+      return Image.file(_selectedImage!, fit: BoxFit.cover);
+    }
+
+    // Show saved base64 photo from Firestore
+    if (photoUrl != null && photoUrl.startsWith('data:image')) {
+      try {
+        final base64Str = photoUrl.split(',').last;
+        final bytes = base64Decode(base64Str);
+        return Image.memory(bytes, fit: BoxFit.cover);
+      } catch (_) {
+        // Fall through to default
+      }
+    }
+
+    // Show network URL photo
+    if (photoUrl != null && photoUrl.startsWith('http')) {
+      return Image.network(
+        photoUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, error, stackTrace) => _buildInitialAvatar(displayName),
+      );
+    }
+
+    // Default: initial letter
+    return _buildInitialAvatar(displayName);
+  }
+
+  Widget _buildInitialAvatar(String displayName) {
+    return Center(
+      child: Text(
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+        style: const TextStyle(
+          fontFamily: AppFonts.baloo2,
+          fontSize: 48,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF41B37E),
         ),
       ),
     );
@@ -647,7 +800,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 style: const TextStyle(fontFamily: AppFonts.sfProRounded),
                 decoration: InputDecoration(
                   hintText: 'Contoh: Membaca, Bermain, Menggambar',
-                  hintStyle: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+                  hintStyle: TextStyle(
+                    fontFamily: AppFonts.sfProRounded,
+                    color: AppColors.textHint,
+                  ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -691,28 +847,63 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   }
 
   void _editFavoriteColor() {
+    _editGenericField(
+      title: 'Edit Warna Favorit',
+      controller: _favoriteColorController,
+      hint: 'Contoh: Biru, Hijau, Merah',
+    );
+  }
+
+  /// Generic dialog for editing any text field
+  void _editGenericField({
+    required String title,
+    required TextEditingController controller,
+    required String hint,
+    String? helperText,
+    int maxLines = 1,
+  }) {
     showDialog(
       context: context,
       builder: (context) {
-        final controller = TextEditingController(text: _favoriteColorController.text);
+        final dialogController = TextEditingController(text: controller.text);
         return AlertDialog(
-          title: const Text(
-            'Edit Warna Favorit',
-            style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+          title: Text(
+            title,
+            style: const TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
           ),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            style: const TextStyle(fontFamily: AppFonts.sfProRounded),
-            decoration: InputDecoration(
-              hintText: 'Contoh: Biru, Hijau, Merah',
-              hintStyle: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF41B37E), width: 2),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: dialogController,
+                autofocus: true,
+                maxLines: maxLines,
+                style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: TextStyle(
+                    fontFamily: AppFonts.sfProRounded,
+                    color: AppColors.textHint,
+                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF41B37E), width: 2),
+                  ),
+                ),
               ),
-            ),
+              if (helperText != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  helperText,
+                  style: TextStyle(
+                    fontFamily: AppFonts.sfProRounded,
+                    fontSize: 12,
+                    color: AppColors.textHint,
+                  ),
+                ),
+              ],
+            ],
           ),
           actions: [
             TextButton(
@@ -724,7 +915,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             ),
             TextButton(
               onPressed: () {
-                setState(() => _favoriteColorController.text = controller.text);
+                setState(() => controller.text = dialogController.text);
                 Navigator.pop(context);
               },
               child: const Text(
@@ -747,9 +938,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           backgroundColor: const Color(0xFF41B37E),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           elevation: 0,
         ),
         child: _isSaving

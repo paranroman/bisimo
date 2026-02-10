@@ -39,6 +39,9 @@ class _SplashScreenState extends State<SplashScreen> {
       if (authProvider.isStudentMode) {
         // Student goes to Home (with Cimo)
         context.go(AppRoutes.home);
+      } else if (authProvider.needsProfileData) {
+        // Wali needs to complete profile first
+        context.go(AppRoutes.profileData);
       } else {
         // Wali goes to Dashboard
         context.go(AppRoutes.waliDashboard);

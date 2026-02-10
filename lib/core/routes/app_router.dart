@@ -48,6 +48,13 @@ class AppRouter {
         builder: (context, state) => const SignInScreen(),
       ),
 
+      // Student Login — redirects to SignIn with Murid tab pre-selected
+      GoRoute(
+        path: AppRoutes.studentLogin,
+        name: 'studentLogin',
+        redirect: (context, state) => AppRoutes.signIn,
+      ),
+
       // Sign Up Screen
       GoRoute(
         path: AppRoutes.signUp,

@@ -84,11 +84,14 @@ class StudentSession {
     });
   }
 
-  /// Check if session is valid (not expired)
-  /// Sessions expire after 30 days
+  /// Check if session is valid
+  /// Sessions are permanent until wali kelas regenerates the token.
+  /// Validation against Firestore token hash is done on session restore.
   bool get isValid {
-    final expiryDuration = const Duration(days: 30);
-    return DateTime.now().difference(sessionCreatedAt) < expiryDuration;
+    // Session is always valid locally — server-side token hash check
+    // in StudentAuthService.getStudentSession() handles invalidation
+    // when wali kelas regenerates the token.
+    return true;
   }
 
   /// Get session age in days

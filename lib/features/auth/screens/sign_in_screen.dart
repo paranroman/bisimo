@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
@@ -9,7 +11,6 @@ import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
-import '../services/auth_service.dart';
 import 'qr_scanner_screen.dart';
 
 /// Sign In Screen - User login page with tabs for Guru/Wali and Murid
@@ -25,9 +26,6 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _tokenController = TextEditingController();
-
-  // Services
-  final _authService = AuthService();
 
   // State
   late TabController _tabController;
@@ -68,20 +66,21 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
 
     setState(() => _isLoading = true);
 
-    final result = await _authService.signIn(
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signIn(_emailController.text, _passwordController.text);
 
     setState(() => _isLoading = false);
 
-    if (result.isSuccess) {
+    if (success) {
       if (mounted) {
-        // Wali/Guru goes to Dashboard
-        context.go(AppRoutes.waliDashboard);
+        if (authProvider.needsProfileData) {
+          context.go(AppRoutes.profileData);
+        } else {
+          context.go(AppRoutes.waliDashboard);
+        }
       }
     } else {
-      _showSnackBar(result.message ?? 'Login gagal');
+      _showSnackBar(authProvider.errorMessage ?? 'Login gagal');
     }
   }
 
@@ -121,6 +120,44 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       _tokenController.text = scannedToken;
       // Auto-login after scan
       _handleStudentSignIn();
+    }
+  }
+
+  /// Pick a QR code image from gallery and decode the token
+  void _pickQRFromGallery() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) return;
+
+      final controller = MobileScannerController();
+      try {
+        final result = await controller.analyzeImage(pickedFile.path);
+
+        final barcodes = result?.barcodes ?? [];
+        if (barcodes.isEmpty) {
+          if (mounted) _showSnackBar('QR Code tidak ditemukan pada gambar');
+          return;
+        }
+
+        for (final barcode in barcodes) {
+          final code = barcode.rawValue;
+          if (code != null) {
+            final normalized = code.trim().toUpperCase().replaceAll('-', '');
+            if (normalized.length == 6 && RegExp(r'^[A-Z0-9]{6}$').hasMatch(normalized)) {
+              final formattedCode = '${normalized.substring(0, 3)}-${normalized.substring(3)}';
+              _tokenController.text = formattedCode;
+              _handleStudentSignIn();
+              return;
+            }
+          }
+        }
+        if (mounted) _showSnackBar('QR Code tidak berisi token yang valid');
+      } finally {
+        controller.dispose();
+      }
+    } catch (e) {
+      if (mounted) _showSnackBar('Gagal membaca gambar QR. Coba lagi.');
     }
   }
 
@@ -250,7 +287,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
-        labelColor: AppColors.primary,
+        labelColor: _currentTabIndex == 0 ? AppColors.primary : const Color(0xFF41B37E),
         unselectedLabelColor: AppColors.textSecondary,
         labelStyle: const TextStyle(
           fontFamily: AppFonts.sfProRounded,
@@ -367,7 +404,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
         Container(
           padding: const EdgeInsets.all(AppSizes.paddingM),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight.withValues(alpha: 0.3),
+            color: const Color(0xFF41B37E).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppSizes.radiusM),
           ),
           child: const Row(
@@ -418,12 +455,16 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
 
         // QR Scan Button (child-friendly, big button)
         _buildScanQRButton(),
+        const SizedBox(height: AppSizes.spaceM),
+
+        // Upload QR from Gallery button
+        _buildGalleryQRButton(),
         const SizedBox(height: AppSizes.spaceXL),
 
         // Masuk Button
         Center(
           child: _isLoading
-              ? const CircularProgressIndicator(color: AppColors.primary)
+              ? const CircularProgressIndicator(color: Color(0xFF41B37E))
               : _buildStudentSignInButton(),
         ),
         const SizedBox(height: AppSizes.spaceXL),
@@ -464,14 +505,14 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
-          borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+          borderSide: BorderSide(color: const Color(0xFF41B37E).withValues(alpha: 0.3), width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
-          borderSide: const BorderSide(color: AppColors.primary, width: 3),
+          borderSide: const BorderSide(color: Color(0xFF41B37E), width: 3),
         ),
         filled: true,
-        fillColor: AppColors.primaryLight.withValues(alpha: 0.1),
+        fillColor: const Color(0xFF41B37E).withValues(alpha: 0.06),
       ),
     );
   }
@@ -488,10 +529,10 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppSizes.radiusL),
-          border: Border.all(color: AppColors.primary, width: 2),
+          border: Border.all(color: const Color(0xFF41B37E), width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.2),
+              color: const Color(0xFF41B37E).withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -503,10 +544,10 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight.withValues(alpha: 0.3),
+                color: const Color(0xFF41B37E).withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.qr_code_scanner_rounded, size: 32, color: AppColors.primary),
+              child: const Icon(Icons.qr_code_scanner_rounded, size: 32, color: Color(0xFF41B37E)),
             ),
             const SizedBox(width: 16),
             const Column(
@@ -518,7 +559,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                     fontFamily: AppFonts.sfProRounded,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
+                    color: Color(0xFF41B37E),
                   ),
                 ),
                 Text(
@@ -533,7 +574,41 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
               ],
             ),
             const Spacer(),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primary, size: 20),
+            const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF41B37E), size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGalleryQRButton() {
+    return InkWell(
+      onTap: _pickQRFromGallery,
+      borderRadius: BorderRadius.circular(AppSizes.radiusM),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.paddingM,
+          vertical: AppSizes.paddingM,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppSizes.radiusM),
+          border: Border.all(color: Colors.grey.shade300, width: 1.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.photo_library_rounded, size: 22, color: AppColors.textSecondary),
+            const SizedBox(width: 10),
+            Text(
+              'Upload QR dari Galeri',
+              style: TextStyle(
+                fontFamily: AppFonts.sfProRounded,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
       ),
