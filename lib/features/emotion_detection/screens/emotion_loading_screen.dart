@@ -28,8 +28,8 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   int _dotCount = 0;
   bool _hasNavigated = false;
 
-  /// Timeout: jika API tidak selesai dalam 30 detik, navigasi ke error screen.
-  static const int _loadingTimeoutSeconds = 30;
+  /// Timeout: jika API tidak selesai dalam 10 detik, navigasi ke error screen.
+  static const int _loadingTimeoutSeconds = 10;
   Timer? _loadingTimeoutTimer;
   Timer? _countdownTimer;
   int _secondsRemaining = _loadingTimeoutSeconds;
@@ -126,10 +126,6 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
       debugPrint('[EmotionLoading] ✅ Combined emotion result: ${result.finalEmotion}');
 
       stopwatch.stop();
-      final elapsed = stopwatch.elapsedMilliseconds;
-      if (elapsed < 2000) {
-        await Future.delayed(Duration(milliseconds: 2000 - elapsed));
-      }
 
       if (mounted && !_hasNavigated) {
         _hasNavigated = true;
@@ -139,10 +135,6 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
     } catch (e) {
       debugPrint('[EmotionLoading] ❌ API error: $e');
       stopwatch.stop();
-      final elapsed = stopwatch.elapsedMilliseconds;
-      if (elapsed < 2000) {
-        await Future.delayed(Duration(milliseconds: 2000 - elapsed));
-      }
       if (mounted && !_hasNavigated) {
         _hasNavigated = true;
         _cancelLoadingTimeout();

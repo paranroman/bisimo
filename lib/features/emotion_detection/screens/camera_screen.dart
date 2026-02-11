@@ -44,6 +44,9 @@ class _CropParams {
   /// `true` when camera format is BGRA (iOS). `false` for YUV420 (Android).
   final bool isBGRA;
 
+  /// Sensor orientation in degrees (0, 90, 180, 270).
+  final int sensorOrientation;
+
   _CropParams({
     required this.imageWidth,
     required this.imageHeight,
@@ -53,18 +56,28 @@ class _CropParams {
     required this.bboxWidth,
     required this.bboxHeight,
     required this.isBGRA,
+    required this.sensorOrientation,
   });
 }
 
 /// Runs in a separate isolate via `compute()`.
-/// Converts camera bytes → img.Image → crops face → resizes to 224×224.
+///
+/// Pipeline (matches training):
+///   1. Camera bytes → RGB image  (YUV420 on Android, BGRA on iOS)
+///   2. Rotate to upright          (sensorOrientation → portrait)
+///   3. Mirror horizontally        (cv2.flip(frame,1) equivalent)
+///   4. Transform bbox to mirrored space
+///   5. Crop face with 10 % padding
+///   6. Resize to 224 × 224
+///   7. Encode as JPEG (RGB)
+///
 /// Returns JPEG-encoded bytes of the processed face (or `null`).
 Uint8List? _cropAndResizeFace(_CropParams p) {
   try {
     img.Image? fullImage;
 
     if (p.isBGRA) {
-      // ── iOS: BGRA8888 ──────────────────────────────────────────────
+      // ── iOS: BGRA8888 → RGB ────────────────────────────────────────
       fullImage = img.Image(width: p.imageWidth, height: p.imageHeight);
       final bytes = p.planes[0].bytes;
       final bpr = p.planes[0].bytesPerRow;
@@ -84,22 +97,39 @@ Uint8List? _cropAndResizeFace(_CropParams p) {
         }
       }
     } else {
-      // ── Android: YUV420 ────────────────────────────────────────────
+      // ── Android: YUV420 → RGB ──────────────────────────────────────
       fullImage = _convertYUV420ToImage(p);
     }
 
     if (fullImage == null) return null;
 
-    // ── Add 10 % padding around the bounding box ──────────────────────
+    // ── Step 1: Rotate to upright (match ML Kit bbox coordinate space) ─
+    // ML Kit applies rotation metadata internally, producing bbox values
+    // in the rotated (upright) coordinate space.  We must rotate our raw
+    // RGB buffer to the same orientation before cropping.
+    if (p.sensorOrientation != 0) {
+      fullImage = img.copyRotate(fullImage, angle: p.sensorOrientation);
+    }
+
+    // ── Step 2: Mirror horizontally ─────────────────────────────────
+    // Training used cv2.flip(frame, 1).  We replicate that so the
+    // cropped face matches what EfficientNetB2 was trained on.
+    img.flipHorizontal(fullImage);
+
+    // ── Step 3: Transform bbox from pre-mirror → mirrored space ─────
+    // ML Kit bbox is in the rotated-but-NOT-mirrored coordinate space.
+    // After horizontal flip:  new_left = width − old_left − old_width.
+    final mirroredBboxLeft = fullImage.width - p.bboxLeft - p.bboxWidth;
+
+    // ── Step 4: Crop with 10 % padding ──────────────────────────────
     final padX = (p.bboxWidth * 0.10).round();
     final padY = (p.bboxHeight * 0.10).round();
 
-    final cropLeft = (p.bboxLeft - padX).clamp(0, fullImage.width - 1);
+    final cropLeft = (mirroredBboxLeft - padX).clamp(0, fullImage.width - 1);
     final cropTop = (p.bboxTop - padY).clamp(0, fullImage.height - 1);
     final cropWidth = (p.bboxWidth + padX * 2).clamp(1, fullImage.width - cropLeft);
     final cropHeight = (p.bboxHeight + padY * 2).clamp(1, fullImage.height - cropTop);
 
-    // ── Crop ──────────────────────────────────────────────────────────
     final cropped = img.copyCrop(
       fullImage,
       x: cropLeft,
@@ -108,7 +138,7 @@ Uint8List? _cropAndResizeFace(_CropParams p) {
       height: cropHeight,
     );
 
-    // ── Resize to 224×224 (EfficientNetB2 input) ──────────────────────
+    // ── Step 5: Resize to 224 × 224 (EfficientNetB2 input) ──────────
     final resized = img.copyResize(
       cropped,
       width: 224,
@@ -184,7 +214,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   // ── Throttle control ───────────────────────────────────────────────────
   DateTime _lastProcessedTime = DateTime.now();
-  static const Duration _throttleInterval = Duration(milliseconds: 300);
+  static const Duration _throttleInterval = Duration(milliseconds: 100);
 
   // ── Processed face data ────────────────────────────────────────────────
   Uint8List? _processedFaceBytes;
@@ -381,6 +411,7 @@ class _CameraScreenState extends State<CameraScreen> {
           bboxWidth: bbox.width.toInt(),
           bboxHeight: bbox.height.toInt(),
           isBGRA: Platform.isIOS,
+          sensorOrientation: _cameraController!.description.sensorOrientation,
         );
 
         final result = await compute(_cropAndResizeFace, cropParams);
@@ -400,9 +431,18 @@ class _CameraScreenState extends State<CameraScreen> {
       // so we must check the inner fields, not just the record itself.
       if (handResults != null && (handResults.left != null || handResults.right != null)) {
         try {
+          // ── Mirror landmarks (x → 1−x) + swap left↔right ─────────
+          // Training used cv2.flip(frame, 1) before MediaPipe Holistic,
+          // so the model saw mirrored images.  To replicate:
+          //   • Mirror each landmark's x-coordinate
+          //   • What the plugin called "left" on the raw (non-mirrored)
+          //     image becomes "right" in the mirrored image, & vice-versa
+          final mirroredLeft = handResults.right?.mirrorX();
+          final mirroredRight = handResults.left?.mirrorX();
+
           final features = _featureExtractor.extractFrameFeatures(
-            leftHand: handResults.left,
-            rightHand: handResults.right,
+            leftHand: mirroredLeft,
+            rightHand: mirroredRight,
           );
           _motionSequence.add(features);
 
@@ -630,7 +670,11 @@ class _CameraScreenState extends State<CameraScreen> {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () {
             _cameraController?.stopImageStream().catchError((_) {});
-            context.pop();
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
           },
         ),
         title: const Text(

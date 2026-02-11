@@ -105,4 +105,17 @@ class HandLandmarkResult {
     confidence: 0.0,
     isLeftHand: isLeft,
   );
+
+  /// Returns a copy with x-coordinates mirrored (x → 1.0 − x).
+  ///
+  /// This simulates `cv2.flip(frame, 1)` from the Python training pipeline
+  /// without re-running detection on a mirrored buffer.  Y and Z are
+  /// unchanged; handedness swap is handled by the caller (left↔right).
+  HandLandmarkResult mirrorX() {
+    return HandLandmarkResult(
+      landmarks: landmarks.map((p) => Point3D(1.0 - p.x, p.y, p.z)).toList(),
+      confidence: confidence,
+      isLeftHand: isLeftHand,
+    );
+  }
 }
