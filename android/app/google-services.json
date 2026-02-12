@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "626479514348-kun5ouhcn2mpfe709kpssa9kt18584jc.apps.googleusercontent.com",
+          "client_id": "626479514348-rqi3gruqmvnjsemit5q4u76srhehnqvt.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.bisimo",
-            "certificate_hash": "ad9ba3b430bb9ec326090647ad7d184158084532"
+            "certificate_hash": "d2a848901f1150262ea2eafdb91bd2d0957bb5ef"
           }
         },
         {
