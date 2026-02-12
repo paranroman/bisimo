@@ -24,7 +24,10 @@ class BisimoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => EmotionProvider()),
         ChangeNotifierProvider<ChatProvider>(
-          create: (context) => ChatProvider(chatService: context.read<ApiProvider>().chatService),
+          create: (context) => ChatProvider(
+            chatService: context.read<ApiProvider>().chatService,
+            authProvider: context.read<AuthProvider>(),
+          ),
         ),
         ChangeNotifierProvider(create: (_) => CimoProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),

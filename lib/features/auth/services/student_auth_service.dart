@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/student_model.dart';
@@ -48,18 +50,20 @@ class StudentAuthService {
         );
       }
 
-      debugPrint('StudentAuthService: Attempting login with token: $normalizedToken');
+      debugPrint('🔵 StudentAuthService: Attempting login with token: $normalizedToken');
 
       // Verify token via repository (hash + query Firestore)
       final student = await _studentRepository.verifyStudentToken(normalizedToken);
 
       if (student == null) {
-        debugPrint('StudentAuthService: Token not found or invalid');
+        debugPrint('🔴 StudentAuthService: Token not found or invalid');
         return StudentAuthResult.failure(message: 'Token tidak ditemukan. Pastikan token benar.');
       }
 
-      debugPrint('StudentAuthService: Token valid, creating session for ${student.displayName}');
-
+      debugPrint('🟢 StudentAuthService: Token valid, creating session for ${student.displayName}');
+      // Sign in anonymously to Firebase Auth so student has a Firebase token for API calls
+      // This is needed because backend requires Firebase ID Token in Authorization header
+      await _ensureFirebaseAuth();
       // Create session
       final session = StudentSession.fromStudent(student);
 
@@ -67,36 +71,85 @@ class StudentAuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_sessionKey, session.toJson());
 
-      debugPrint('StudentAuthService: Session saved');
+      debugPrint('🟢 StudentAuthService: Session saved successfully');
 
       return StudentAuthResult.success(
         session: session,
         message: 'Selamat datang, ${student.displayName}!',
       );
     } catch (e, stackTrace) {
-      debugPrint('StudentAuthService: Error - $e');
-      debugPrint('StudentAuthService: Stack trace - $stackTrace');
+      debugPrint('🔴 StudentAuthService ERROR: ${e.runtimeType}');
+      debugPrint('🔴 Message: $e');
+      debugPrint('🔴 Stack trace:\n$stackTrace');
+      
+      // Record error to Firebase Crashlytics
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'StudentAuthService.signInStudent failed',
+        fatal: false,
+      );
 
-      // Provide more specific error messages
+      // Provide more specific error messages based on error type
       final errorMessage = e.toString().toLowerCase();
+      
       if (errorMessage.contains('permission') || errorMessage.contains('denied')) {
-        return StudentAuthResult.failure(message: 'Akses ditolak. Hubungi wali kelas Anda.');
-      } else if (errorMessage.contains('network') || errorMessage.contains('connection')) {
-        return StudentAuthResult.failure(message: 'Koneksi internet bermasalah. Coba lagi.');
+        return StudentAuthResult.failure(
+          message: 'Akses ditolak. Pastikan Firestore rules sudah benar.',
+        );
+      } else if (errorMessage.contains('network') || 
+                 errorMessage.contains('connection') || 
+                 errorMessage.contains('timeout')) {
+        return StudentAuthResult.failure(
+          message: 'Koneksi internet bermasalah atau server lambat. Coba lagi.',
+        );
       } else if (errorMessage.contains('json') || errorMessage.contains('type')) {
-        return StudentAuthResult.failure(message: 'Data tidak valid. Hubungi wali kelas.');
+        return StudentAuthResult.failure(
+          message: 'Format data tidak valid. Hubungi wali kelas Anda.',
+        );
+      } else if (errorMessage.contains('firebaseexception')) {
+        return StudentAuthResult.failure(
+          message: 'Gagal menghubungi Firebase. Periksa internet Anda.',
+        );
+      } else if (errorMessage.contains('no matching documents')) {
+        return StudentAuthResult.failure(
+          message: 'Token tidak terdaftar di sistem.',
+        );
       }
 
       return StudentAuthResult.failure(
-        message:
-            'Terjadi kesalahan: ${e.toString().length > 50 ? e.toString().substring(0, 50) : e.toString()}',
+        message: 'Kesalahan login: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e.toString()}',
       );
     }
   }
 
-  /// Sign out student (clear session)
+  /// Ensure student has a Firebase Auth session (anonymous) for API token
+  Future<void> _ensureFirebaseAuth() async {
+    try {
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser == null) {
+        debugPrint('StudentAuthService: Signing in anonymously for API token...');
+        await auth.signInAnonymously();
+        debugPrint('StudentAuthService: ✅ Anonymous auth success, uid: ${auth.currentUser?.uid}');
+      } else {
+        debugPrint('StudentAuthService: ✅ Firebase Auth already active, uid: ${auth.currentUser?.uid}');
+      }
+    } catch (e) {
+      debugPrint('StudentAuthService: ⚠️ Anonymous auth failed: $e');
+      // Don't rethrow - student can still use the app, but API calls may fail
+    }
+  }
+
+  /// Sign out student (clear session + Firebase anonymous auth)
   Future<void> signOutStudent() async {
     try {
+      // Sign out Firebase anonymous auth
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser != null && auth.currentUser!.isAnonymous) {
+        await auth.signOut();
+        debugPrint('StudentAuthService: Firebase anonymous auth signed out');
+      }
+      
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_sessionKey);
       debugPrint('StudentAuthService: Session cleared');
@@ -124,6 +177,9 @@ class StudentAuthService {
       }
 
       final session = StudentSession.fromJson(sessionJson);
+
+      // Ensure Firebase anonymous auth is active for API calls
+      await _ensureFirebaseAuth();
 
       // Verify the student still exists and token hash hasn't changed
       // This handles the case where wali kelas regenerated the token

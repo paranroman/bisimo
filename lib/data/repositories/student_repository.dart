@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import '../models/student_model.dart';
 
@@ -160,42 +162,72 @@ class StudentRepository {
   Future<StudentModel?> verifyStudentToken(String plainToken) async {
     try {
       final hashedToken = _hashToken(plainToken);
-      debugPrint('StudentRepository: Verifying token hash: ${hashedToken.substring(0, 10)}...');
+      debugPrint('🔵 StudentRepository: Starting token verification');
+      debugPrint('🔵 Token hash (first 10 chars): ${hashedToken.substring(0, 10)}...');
 
+      final startTime = DateTime.now();
+      
       final snapshot = await _studentsCollection
           .where('loginTokenHash', isEqualTo: hashedToken)
           .limit(1)
-          .get();
+          .get()
+          .timeout(
+            Duration(seconds: 15),
+            onTimeout: () => throw TimeoutException('Firestore query timeout after 15s'),
+          );
 
-      debugPrint('StudentRepository: Query returned ${snapshot.docs.length} documents');
+      final queryDuration = DateTime.now().difference(startTime);
+      debugPrint('🟢 StudentRepository: Query completed in ${queryDuration.inMilliseconds}ms');
+      debugPrint('🟢 StudentRepository: Query returned ${snapshot.docs.length} documents');
 
       if (snapshot.docs.isEmpty) {
-        debugPrint('StudentRepository: No student found with this token');
+        debugPrint('🔴 StudentRepository: No student found with this token');
         return null;
       }
 
       final doc = snapshot.docs.first;
-      debugPrint('StudentRepository: Found student ${doc.id}');
+      debugPrint('🟢 StudentRepository: Found student with ID: ${doc.id}');
 
       // Try to update last login time, but don't fail if it doesn't work
       // (student might not be authenticated yet for Logical Auth)
       try {
         await doc.reference.update({'updatedAt': FieldValue.serverTimestamp()});
-        debugPrint('StudentRepository: Updated last login time');
+        debugPrint('🟢 StudentRepository: Updated last login time');
       } catch (updateError) {
         // Ignore update errors - the student document was found, that's what matters
         debugPrint(
-          'StudentRepository: Could not update last login time (expected for Logical Auth): $updateError',
+          '⚠️ StudentRepository: Could not update last login time (expected for Logical Auth): $updateError',
         );
       }
 
       final data = doc.data();
+      debugPrint('🟢 StudentRepository: Successfully retrieved student data');
+      
       return StudentModel.fromMap(data, doc.id);
-    } on FirebaseException catch (e) {
-      debugPrint('StudentRepository: Firebase error verifying token - ${e.code}: ${e.message}');
+    } on TimeoutException catch (e) {
+      debugPrint('🔴 StudentRepository: Timeout error - $e');
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        StackTrace.current,
+        reason: 'StudentRepository.verifyStudentToken timeout',
+      );
       rethrow;
-    } catch (e) {
-      debugPrint('StudentRepository: Error verifying token - $e');
+    } on FirebaseException catch (e) {
+      debugPrint('🔴 StudentRepository: Firebase error - Code: ${e.code}, Message: ${e.message}');
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        StackTrace.current,
+        reason: 'StudentRepository Firebase error: ${e.code}',
+      );
+      rethrow;
+    } catch (e, stackTrace) {
+      debugPrint('🔴 StudentRepository: Unexpected error - ${e.runtimeType}: $e');
+      debugPrint('Stack trace: $stackTrace');
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'StudentRepository.verifyStudentToken failed',
+      );
       rethrow;
     }
   }

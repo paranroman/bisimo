@@ -25,13 +25,13 @@ class AssetPaths {
   static const String signUpHeader = '$_auth/signup_header.png';
   static const String welcomeCimo = '$_auth/welcome_cimo.png';
 
-  // Cimo Emotions
-  static const String cimoJoy = '$_cimo/CIMO JOY.png';
-  static const String cimoSad = '$_cimo/CIMO SAD.png';
-  static const String cimoAngry = '$_cimo/CIMO ANGRY.png';
-  static const String cimoFear = '$_cimo/CIMO FEAR.png';
-  static const String cimoSurprise = '$_cimo/CIMO SURPRISE.png';
-  static const String cimoDisgust = '$_cimo/CIMO DISGUST.png';
+  // Cimo Emotions (lowercase filenames)
+  static const String cimoJoy = '$_cimo/cimo_joy.png';
+  static const String cimoSad = '$_cimo/cimo_sad.png';
+  static const String cimoAngry = '$_cimo/cimo_angry.png';
+  static const String cimoFear = '$_cimo/cimo_fear.png';
+  static const String cimoSurprise = '$_cimo/cimo_surprise.png';
+  static const String cimoDisgust = '$_cimo/cimo_disgust.png';
 
   // Models
   static const String emotionModel = '$_models/emotion_model.tflite';
@@ -41,19 +41,26 @@ class AssetPaths {
   static String getCimoByEmotion(String emotion) {
     switch (emotion.toLowerCase()) {
       case 'senang':
+      case 'happy': // Added for mapping
+      case 'joy':   // Added for mapping
         return cimoJoy;
       case 'sedih':
+      case 'sad':   // Added for mapping
         return cimoSad;
       case 'marah':
+      case 'angry': // Added for mapping
         return cimoAngry;
       case 'takut':
+      case 'fear':  // Added for mapping
         return cimoFear;
       case 'terkejut':
+      case 'surprise': // Added for mapping
         return cimoSurprise;
       case 'jijik':
+      case 'disgust': // Added for mapping
         return cimoDisgust;
       default:
-        return cimoJoy;
+        return cimoJoy; // Default to Joy
     }
   }
 }

@@ -29,7 +29,7 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
   bool _hasNavigated = false;
 
   /// Timeout: jika API tidak selesai dalam 10 detik, navigasi ke error screen.
-  static const int _loadingTimeoutSeconds = 10;
+  static const int _loadingTimeoutSeconds = 60;
   Timer? _loadingTimeoutTimer;
   Timer? _countdownTimer;
   int _secondsRemaining = _loadingTimeoutSeconds;

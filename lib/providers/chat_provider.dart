@@ -3,22 +3,34 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/models/chat_message_model.dart';
 import '../features/chat/services/chat_service.dart';
 import '../features/emotion_detection/services/emotion_api_service.dart';
+import 'auth_provider.dart' as auth;
 
 /// Manages the chat state and communication with the ChatService.
 class ChatProvider extends ChangeNotifier {
-  ChatProvider({required ChatService chatService}) : _chatService = chatService;
+  ChatProvider({
+    required ChatService chatService,
+    required auth.AuthProvider authProvider,
+  })  : _chatService = chatService,
+        _authProvider = authProvider;
 
   final ChatService _chatService;
+  final auth.AuthProvider _authProvider;
 
   List<ChatMessageModel> _messages = [];
   bool _isTyping = false;
   String? _errorMessage;
   String? _sessionId;
 
+  /// Latest detected emotion label (updated from camera or text prediction)
+  String? _latestEmotion;
+  double? _latestEmotionConfidence;
+
   // Getters
   List<ChatMessageModel> get messages => _messages;
   bool get isTyping => _isTyping;
   String? get errorMessage => _errorMessage;
+  String? get latestEmotion => _latestEmotion;
+  double? get latestEmotionConfidence => _latestEmotionConfidence;
 
   /// Initializes a new chat session.
   Future<void> startChatSession({CombinedEmotionResult? emotionResult}) async {
@@ -26,16 +38,46 @@ class ChatProvider extends ChangeNotifier {
     _setTyping(true);
 
     try {
-      // Tunggu Firebase Auth restore user session (max 5 detik)
-      if (FirebaseAuth.instance.currentUser == null) {
-        debugPrint('[ChatProvider] ⏳ Menunggu Firebase Auth ready...');
+      // Initialize latestEmotion from camera result if available
+      if (emotionResult != null) {
+        _latestEmotion = emotionResult.finalEmotion.emotion;
+        _latestEmotionConfidence = emotionResult.finalEmotion.confidence;
+      }
+
+      // Check BOTH auth methods: Firebase Auth (teacher) OR Student Session
+      bool hasValidAuth = false;
+
+      // Method 1: Check Student Session (Logical Auth - token-based)
+      if (_authProvider.isStudentMode && _authProvider.studentSession != null) {
+        hasValidAuth = true;
+        debugPrint('[ChatProvider] ✅ Student session valid: ${_authProvider.displayName}');
+      }
+      // Method 2: Check Firebase Auth (Teacher/Wali)
+      else if (FirebaseAuth.instance.currentUser != null) {
+        hasValidAuth = true;
+        debugPrint('[ChatProvider] ✅ Firebase Auth valid: ${FirebaseAuth.instance.currentUser?.email}');
+      } else {
+        // Try waiting for Firebase Auth to restore (max 5 seconds)
+        debugPrint('[ChatProvider] ⏳ Menunggu authentication...');
         for (int i = 0; i < 10; i++) {
           await Future.delayed(const Duration(milliseconds: 500));
-          if (FirebaseAuth.instance.currentUser != null) break;
+          
+          // Re-check both methods
+          if (_authProvider.isStudentMode && _authProvider.studentSession != null) {
+            hasValidAuth = true;
+            debugPrint('[ChatProvider] ✅ Student session restored');
+            break;
+          } else if (FirebaseAuth.instance.currentUser != null) {
+            hasValidAuth = true;
+            debugPrint('[ChatProvider] ✅ Firebase Auth restored');
+            break;
+          }
         }
-        if (FirebaseAuth.instance.currentUser == null) {
-          throw Exception('User belum login.');
-        }
+      }
+
+      if (!hasValidAuth) {
+        debugPrint('[ChatProvider] ❌ No valid authentication found');
+        throw Exception('Sesi login tidak valid. Silakan login ulang.');
       }
 
       final bool useCamera = emotionResult != null;
@@ -52,7 +94,7 @@ class ChatProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('[ChatProvider] ❌ startChatSession error: $e');
-      final errorMsg = e.toString().contains('belum login')
+      final errorMsg = e.toString().contains('login')
           ? 'Sesi login habis. Silakan login ulang.'
           : 'Gagal memulai sesi chat. Coba lagi nanti.';
       _setError(errorMsg);
@@ -103,6 +145,12 @@ class ChatProvider extends ChangeNotifier {
             detectedEmotion: label,
             emotionConfidence: confidence,
           );
+
+          // Update the Cimo card emotion with the latest text prediction
+          if (label != null && label.isNotEmpty) {
+            _latestEmotion = label;
+            _latestEmotionConfidence = confidence;
+          }
         }
       }
 
@@ -163,6 +211,8 @@ class ChatProvider extends ChangeNotifier {
     _sessionId = null;
     _errorMessage = null;
     _isTyping = false;
+    _latestEmotion = null;
+    _latestEmotionConfidence = null;
   }
 
   @override

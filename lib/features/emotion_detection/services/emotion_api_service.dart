@@ -43,7 +43,7 @@ class EmotionApiService {
   String? get sessionId => _sessionId;
 
   static const Duration _predictTimeout = Duration(seconds: 15);
-  static const Duration _chatTimeout = Duration(seconds: 30);
+  static const Duration _chatTimeout = Duration(seconds: 60);
 
   // ══════════════════════════════════════════════════════════════════════
   //  Firebase Auth Helper

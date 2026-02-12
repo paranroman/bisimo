@@ -119,8 +119,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildCimoEmotionCard(ChatProvider provider) {
-    final bool hasEmotion = widget.emotionResult != null;
-    final String emotionKey = widget.emotionResult?.finalEmotion.emotion.toLowerCase() ?? '';
+    // Use latest detected emotion (updates from text prediction too)
+    final String? latestEmotion = provider.latestEmotion;
+    final bool hasEmotion = latestEmotion != null && latestEmotion.isNotEmpty;
+    final String emotionKey = latestEmotion?.toLowerCase() ?? '';
     // Capitalize first letter for display
     final String displayEmotion = emotionKey.isNotEmpty
         ? '${emotionKey[0].toUpperCase()}${emotionKey.substring(1)}'
@@ -204,7 +206,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isUser ? const Color(0xFF5BC0EB) : const Color(0xFFF8A5A5),
+                    // Changed colors to improve contrast, as requested in the image.
+                    color: isUser ? const Color(0xFF8CD4F5) : const Color(0xFFFFB7B7),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -215,27 +218,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Text(
                     message.content,
                     style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
-                      fontSize: 14,
+                      fontFamily: AppFonts.sfProRounded, // Same font as the label.
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: isUser ? Colors.white : AppColors.textPrimary,
+                      // Changed text color to black for better readability.
+                      color: Colors.black,
                       height: 1.4,
                     ),
                   ),
                 ),
-                // Tampilkan label emosi yang dideteksi IndoBERT
-                if (isUser && message.detectedEmotion != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      '😊 ${message.detectedEmotion}',
-                      style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
