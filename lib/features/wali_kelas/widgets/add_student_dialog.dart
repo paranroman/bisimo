@@ -146,7 +146,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     child: Text(
                       'Tambah Murid Baru',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -244,7 +244,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                       child: const Text(
                         'Batal',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textHint,
                         ),
@@ -269,7 +269,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                           : const Text(
                               'Simpan',
                               style: TextStyle(
-                                fontFamily: AppFonts.sfProRounded,
+                                fontFamily: AppFonts.nunito,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
@@ -289,7 +289,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
@@ -301,13 +301,13 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     return TextField(
       controller: controller,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 14,
         color: AppColors.textPrimary,
       ),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+        hintStyle: const TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -342,7 +342,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                     ? DateFormat('dd MMMM yyyy', 'id').format(_selectedDate!)
                     : 'Pilih tanggal lahir',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   color: _selectedDate != null ? AppColors.textPrimary : AppColors.textHint,
                 ),
@@ -372,7 +372,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
           value: value,
           hint: Text(
             hint,
-            style: const TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+            style: const TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
           ),
           isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textHint),
@@ -382,7 +382,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
               child: Text(
                 item,
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   color: AppColors.textPrimary,
                 ),
               ),
@@ -394,3 +394,4 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     );
   }
 }
+

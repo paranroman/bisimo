@@ -50,7 +50,7 @@ class DetectionErrorScreen extends StatelessWidget {
                 Text(
                   _title,
                   style: const TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -63,7 +63,7 @@ class DetectionErrorScreen extends StatelessWidget {
                 Text(
                   _message,
                   style: const TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
@@ -88,7 +88,7 @@ class DetectionErrorScreen extends StatelessWidget {
                     child: const Text(
                       'Coba Lagi',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -111,7 +111,7 @@ class DetectionErrorScreen extends StatelessWidget {
                     child: const Text(
                       'Chat Tanpa Kamera',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -126,3 +126,4 @@ class DetectionErrorScreen extends StatelessWidget {
     );
   }
 }
+

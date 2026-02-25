@@ -25,3 +25,4 @@ class ApiProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+

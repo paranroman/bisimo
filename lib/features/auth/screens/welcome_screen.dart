@@ -80,7 +80,7 @@ class WelcomeScreen extends StatelessWidget {
                         Text(
                           'Masuk',
                           style: TextStyle(
-                            fontFamily: 'SFProRounded',
+                            fontFamily: 'Nunito',
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                           ),
@@ -99,3 +99,4 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
+

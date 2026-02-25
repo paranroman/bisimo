@@ -214,3 +214,4 @@ class ChatServiceException implements Exception {
   @override
   String toString() => 'ChatServiceException: $message';
 }
+

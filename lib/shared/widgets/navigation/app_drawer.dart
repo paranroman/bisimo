@@ -80,7 +80,7 @@ class AppDrawer extends StatelessWidget {
                         SnackBar(
                           content: const Text(
                             'Fitur akan segera hadir!',
-                            style: TextStyle(fontFamily: AppFonts.sfProRounded),
+                            style: TextStyle(fontFamily: AppFonts.nunito),
                           ),
                           backgroundColor: AppColors.textPrimary,
                           behavior: SnackBarBehavior.floating,
@@ -173,7 +173,7 @@ class AppDrawer extends StatelessWidget {
             const Text(
               'Aplikasi Bahasa\nIsyarat Deteksi\nEmosional untuk\nAnak Tunarungu',
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textPrimary,
@@ -221,7 +221,7 @@ class AppDrawer extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: isDisabled ? AppColors.textHint : textColor,
@@ -232,7 +232,7 @@ class AppDrawer extends StatelessWidget {
               Text(
                 subtitle,
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 11,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFFFFBD30),
@@ -259,25 +259,25 @@ class AppDrawer extends StatelessWidget {
           builder: (dialogContext) => AlertDialog(
             title: const Text(
               'Keluar dari Akun',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+              style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
             ),
             content: const Text(
               'Apakah kamu yakin ingin keluar?',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded),
+              style: TextStyle(fontFamily: AppFonts.nunito),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text(
                   'Batal',
-                  style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+                  style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text(
                   'Keluar',
-                  style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFFE57373)),
+                  style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFFE57373)),
                 ),
               ),
             ],
@@ -314,7 +314,7 @@ class AppDrawer extends StatelessWidget {
           'Keluar dari Akun',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -324,3 +324,4 @@ class AppDrawer extends StatelessWidget {
     );
   }
 }
+

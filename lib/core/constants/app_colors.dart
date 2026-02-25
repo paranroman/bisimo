@@ -52,3 +52,4 @@ class AppColors {
 
   static const List<Color> backgroundGradient = [Color(0xFFF5F7FA), Color(0xFFE8ECF0)];
 }
+

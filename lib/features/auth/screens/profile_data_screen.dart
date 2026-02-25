@@ -136,7 +136,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontFamily: AppFonts.sfProRounded)),
+        content: Text(message, style: const TextStyle(fontFamily: AppFonts.nunito)),
         backgroundColor: AppColors.textPrimary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -182,7 +182,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                       const Text(
                         'Lengkapi Data Diri',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
@@ -193,7 +193,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                       const Text(
                         'Data ini akan digunakan untuk profil anak',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           color: AppColors.textHint,
@@ -261,7 +261,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                             child: Text(
                               'Data Orang Tua/Wali',
                               style: TextStyle(
-                                fontFamily: AppFonts.sfProRounded,
+                                fontFamily: AppFonts.nunito,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.textHint,
@@ -345,7 +345,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 16,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
@@ -362,7 +362,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
       controller: controller,
       keyboardType: keyboardType,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
@@ -370,7 +370,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 16,
           fontWeight: FontWeight.w400,
           color: AppColors.textHint,
@@ -411,7 +411,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                     ? DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate!)
                     : 'Pilih tanggal lahir...',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   color: _selectedDate != null ? AppColors.textPrimary : AppColors.textHint,
@@ -443,7 +443,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
           hint: Text(
             hint,
             style: const TextStyle(
-              fontFamily: AppFonts.sfProRounded,
+              fontFamily: AppFonts.nunito,
               fontSize: 16,
               fontWeight: FontWeight.w400,
               color: AppColors.textHint,
@@ -457,7 +457,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
               child: Text(
                 item,
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   color: AppColors.textPrimary,
@@ -471,3 +471,4 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     );
   }
 }
+

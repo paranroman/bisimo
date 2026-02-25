@@ -64,3 +64,4 @@ class AppSizes {
   static const double spaceXL = 32.0;
   static const double spaceXXL = 48.0;
 }
+

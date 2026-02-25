@@ -116,7 +116,7 @@ class PrimaryButton extends StatelessWidget {
                             Text(
                               text,
                               style: TextStyle(
-                                fontFamily: AppFonts.sfProRounded,
+                                fontFamily: AppFonts.nunito,
                                 fontSize: fontSize,
                                 fontWeight: fontWeight,
                                 color: textColor,
@@ -127,7 +127,7 @@ class PrimaryButton extends StatelessWidget {
                       : Text(
                           text,
                           style: TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: fontSize,
                             fontWeight: fontWeight,
                             color: textColor,
@@ -149,3 +149,4 @@ class PrimaryButton extends StatelessWidget {
     return darkened.toColor();
   }
 }
+

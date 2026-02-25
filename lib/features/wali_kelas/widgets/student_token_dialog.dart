@@ -53,7 +53,7 @@ class StudentTokenDialog extends StatelessWidget {
               Text(
                 isRegeneration ? 'Token Baru Berhasil Dibuat!' : 'Murid Berhasil Ditambahkan!',
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -66,7 +66,7 @@ class StudentTokenDialog extends StatelessWidget {
               Text(
                 student.displayName,
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textHint,
@@ -106,7 +106,7 @@ class StudentTokenDialog extends StatelessWidget {
                     Text(
                       plainToken,
                       style: const TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
@@ -140,7 +140,7 @@ class StudentTokenDialog extends StatelessWidget {
                       child: Text(
                         'Simpan token ini! Token tidak akan ditampilkan lagi.',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.orange.shade800,
@@ -156,7 +156,7 @@ class StudentTokenDialog extends StatelessWidget {
               const Text(
                 'Berikan token atau scan QR Code ini kepada murid untuk login ke aplikasi.',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                   color: AppColors.textHint,
@@ -178,7 +178,7 @@ class StudentTokenDialog extends StatelessWidget {
                   child: const Text(
                     'Selesai',
                     style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
+                      fontFamily: AppFonts.nunito,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -193,3 +193,4 @@ class StudentTokenDialog extends StatelessWidget {
     );
   }
 }
+

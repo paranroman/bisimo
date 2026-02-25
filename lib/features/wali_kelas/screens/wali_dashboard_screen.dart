@@ -86,25 +86,25 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       builder: (context) => AlertDialog(
         title: const Text(
           'Buat Token Baru?',
-          style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+          style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Token lama untuk ${student.displayName} akan tidak berlaku lagi. Lanjutkan?',
-          style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+          style: const TextStyle(fontFamily: AppFonts.nunito),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
               'Batal',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Ya, Buat Baru',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+              style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFF41B37E)),
             ),
           ),
         ],
@@ -132,25 +132,25 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
       builder: (context) => AlertDialog(
         title: const Text(
           'Hapus Murid?',
-          style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+          style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Apakah Anda yakin ingin menghapus ${student.displayName} dari daftar murid?',
-          style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+          style: const TextStyle(fontFamily: AppFonts.nunito),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
               'Batal',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Hapus',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFFE57373)),
+              style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFFE57373)),
             ),
           ),
         ],
@@ -186,7 +186,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
         title: const Text(
           'Dashboard Wali Kelas',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -263,7 +263,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
         label: const Text(
           'Tambah Murid',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
@@ -340,7 +340,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                         const Text(
                           'Selamat Datang,',
                           style: TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
                             color: Colors.white70,
@@ -349,7 +349,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                         Text(
                           '$_formattedWaliName!',
                           style: const TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -361,7 +361,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                         Text(
                           '$studentCount murid terdaftar',
                           style: const TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Colors.white70,
@@ -381,7 +381,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
           const Text(
             'Daftar Murid',
             style: TextStyle(
-              fontFamily: AppFonts.sfProRounded,
+              fontFamily: AppFonts.nunito,
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -410,7 +410,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
           const Text(
             'Belum Ada Murid',
             style: TextStyle(
-              fontFamily: AppFonts.sfProRounded,
+              fontFamily: AppFonts.nunito,
               fontSize: 20,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -423,7 +423,7 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
               'Tekan tombol "Tambah Murid" untuk menambahkan murid baru ke kelas Anda.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textHint,
@@ -436,3 +436,4 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
     );
   }
 }
+

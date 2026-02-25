@@ -58,7 +58,7 @@ class StudentCard extends StatelessWidget {
                       Text(
                         student.lockedProfile.fullName,
                         style: const TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -82,7 +82,7 @@ class StudentCard extends StatelessWidget {
                         Text(
                           'Terakhir login: ${_formatLastLogin(student.updatedAt!)}',
                           style: const TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 11,
                             fontWeight: FontWeight.w400,
                             color: AppColors.textHint,
@@ -116,7 +116,7 @@ class StudentCard extends StatelessWidget {
                           SizedBox(width: 8),
                           Text(
                             'Buat Token Baru',
-                            style: TextStyle(fontFamily: AppFonts.sfProRounded),
+                            style: TextStyle(fontFamily: AppFonts.nunito),
                           ),
                         ],
                       ),
@@ -130,7 +130,7 @@ class StudentCard extends StatelessWidget {
                           Text(
                             'Hapus Murid',
                             style: TextStyle(
-                              fontFamily: AppFonts.sfProRounded,
+                              fontFamily: AppFonts.nunito,
                               color: Color(0xFFE57373),
                             ),
                           ),
@@ -195,7 +195,7 @@ class StudentCard extends StatelessWidget {
       child: Text(
         student.displayName.isNotEmpty ? student.displayName[0].toUpperCase() : '?',
         style: TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 24,
           fontWeight: FontWeight.w700,
           color: isMale ? const Color(0xFF5B9BD5) : const Color(0xFFFF69B4),
@@ -219,7 +219,7 @@ class StudentCard extends StatelessWidget {
           Text(
             text,
             style: const TextStyle(
-              fontFamily: AppFonts.sfProRounded,
+              fontFamily: AppFonts.nunito,
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: AppColors.textHint,
@@ -245,3 +245,4 @@ class StudentCard extends StatelessWidget {
     }
   }
 }
+

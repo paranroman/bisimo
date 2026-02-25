@@ -77,7 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text(
           'Obrolan bersama Cimo',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -166,7 +166,7 @@ class _ChatScreenState extends State<ChatScreen> {
             textAlign: TextAlign.center,
             text: TextSpan(
               style: const TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 16,
                 color: AppColors.textPrimary,
               ),
@@ -218,7 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Text(
                     message.content,
                     style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded, // Same font as the label.
+                      fontFamily: AppFonts.nunito, // Same font as the label.
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       // Changed text color to black for better readability.
@@ -257,7 +257,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: TextField(
                 controller: _messageController,
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   color: isTyping ? Colors.grey.shade600 : Colors.black,
                 ),
@@ -266,7 +266,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   fillColor: Colors.white,
                   hintText: isTyping ? 'Cimo sedang mengetik...' : 'Ketik pesan...',
                   hintStyle: const TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     color: AppColors.textHint,
                   ),
                   border: OutlineInputBorder(
@@ -334,3 +334,4 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 }
+

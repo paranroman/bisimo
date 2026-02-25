@@ -5,7 +5,7 @@ class AssetPaths {
   // Base Paths
   static const String _screens = 'assets/Screens';
   static const String _auth = 'assets/Screens/Auth';
-  static const String _cimo = 'assets/Screens/Cimo';
+  static const String _cimo = 'assets/Cimo';
   static const String _home = 'assets/Screens/Home';
   static const String _splash = 'assets/Screens/Splash';
   static const String _models = 'assets/Models';
@@ -64,3 +64,4 @@ class AssetPaths {
     }
   }
 }
+

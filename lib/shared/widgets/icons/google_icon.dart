@@ -12,3 +12,4 @@ class GoogleIcon extends StatelessWidget {
     return SvgPicture.asset('assets/Screens/Auth/Google_Logo.svg', width: size, height: size);
   }
 }
+

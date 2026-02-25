@@ -28,3 +28,4 @@ class NavigationProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

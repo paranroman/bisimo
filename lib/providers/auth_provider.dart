@@ -245,3 +245,4 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
   }
 }
+

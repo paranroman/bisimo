@@ -382,3 +382,4 @@ class CreateStudentResult {
     return CreateStudentResult._(isSuccess: false, message: message);
   }
 }
+

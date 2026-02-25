@@ -78,7 +78,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const Text(
                 'Pilih Jenis Kelamin',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -88,7 +88,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 (gender) => ListTile(
                   title: Text(
                     gender,
-                    style: const TextStyle(fontFamily: AppFonts.sfProRounded, fontSize: 16),
+                    style: const TextStyle(fontFamily: AppFonts.nunito, fontSize: 16),
                   ),
                   trailing: _selectedGender == gender
                       ? const Icon(Icons.check, color: Color(0xFF41B37E))
@@ -115,15 +115,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return AlertDialog(
           title: const Text(
             'Edit Nama',
-            style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+            style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
           ),
           content: TextField(
             controller: controller,
             autofocus: true,
-            style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+            style: const TextStyle(fontFamily: AppFonts.nunito),
             decoration: InputDecoration(
               hintText: 'Masukkan nama...',
-              hintStyle: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              hintStyle: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -136,7 +136,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 'Batal',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
               ),
             ),
             TextButton(
@@ -147,7 +147,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               },
               child: const Text(
                 'Simpan',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFF41B37E)),
               ),
             ),
           ],
@@ -181,7 +181,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           SnackBar(
             content: const Text(
               'Profil berhasil disimpan!',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded),
+              style: TextStyle(fontFamily: AppFonts.nunito),
             ),
             backgroundColor: const Color(0xFF41B37E),
             behavior: SnackBarBehavior.floating,
@@ -195,7 +195,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           SnackBar(
             content: Text(
               'Gagal menyimpan: $e',
-              style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+              style: const TextStyle(fontFamily: AppFonts.nunito),
             ),
             backgroundColor: AppColors.textPrimary,
             behavior: SnackBarBehavior.floating,
@@ -224,7 +224,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text(
           'Edit Profil',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -299,7 +299,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -314,7 +314,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Text(
                   value,
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                     color: value.contains('Belum') ? AppColors.textHint : AppColors.textPrimary,
@@ -415,3 +415,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+

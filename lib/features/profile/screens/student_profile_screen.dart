@@ -113,7 +113,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const Text(
               'Pilih Foto Profil',
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -121,7 +121,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0xFF41B37E)),
-              title: const Text('Kamera', style: TextStyle(fontFamily: AppFonts.sfProRounded)),
+              title: const Text('Kamera', style: TextStyle(fontFamily: AppFonts.nunito)),
               onTap: () async {
                 Navigator.pop(context);
                 final image = await _imagePicker.pickImage(
@@ -137,7 +137,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Color(0xFF41B37E)),
-              title: const Text('Galeri', style: TextStyle(fontFamily: AppFonts.sfProRounded)),
+              title: const Text('Galeri', style: TextStyle(fontFamily: AppFonts.nunito)),
               onTap: () async {
                 Navigator.pop(context);
                 final image = await _imagePicker.pickImage(
@@ -262,7 +262,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   void _showSnackBar(String message, {bool isSuccess = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontFamily: AppFonts.sfProRounded)),
+        content: Text(message, style: const TextStyle(fontFamily: AppFonts.nunito)),
         backgroundColor: isSuccess ? const Color(0xFF41B37E) : AppColors.textPrimary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -295,7 +295,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             Text(
               'Data profil tidak ditemukan',
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 16,
                 color: AppColors.textHint,
               ),
@@ -495,7 +495,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     child: Text(
                       'Profil Saya',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -553,7 +553,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             Text(
               displayName,
               style: const TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -565,7 +565,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               Text(
                 fullName,
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: Colors.white.withValues(alpha: 0.8),
@@ -633,7 +633,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         Text(
           title,
           style: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -654,7 +654,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -667,7 +667,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               child: Text(
                 value,
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   color: value == '-' ? AppColors.textHint : AppColors.textPrimary,
@@ -698,7 +698,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -713,7 +713,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 child: Text(
                   value,
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                     color: value.contains('Belum') ? AppColors.textHint : AppColors.textPrimary,
@@ -741,15 +741,15 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         return AlertDialog(
           title: const Text(
             'Edit Nama Panggilan',
-            style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+            style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
           ),
           content: TextField(
             controller: controller,
             autofocus: true,
-            style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+            style: const TextStyle(fontFamily: AppFonts.nunito),
             decoration: InputDecoration(
               hintText: 'Masukkan nama panggilan...',
-              hintStyle: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              hintStyle: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -762,7 +762,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 'Batal',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
               ),
             ),
             TextButton(
@@ -772,7 +772,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               },
               child: const Text(
                 'Simpan',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFF41B37E)),
               ),
             ),
           ],
@@ -789,7 +789,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         return AlertDialog(
           title: const Text(
             'Edit Hobi',
-            style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+            style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -797,11 +797,11 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               TextField(
                 controller: controller,
                 autofocus: true,
-                style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+                style: const TextStyle(fontFamily: AppFonts.nunito),
                 decoration: InputDecoration(
                   hintText: 'Contoh: Membaca, Bermain, Menggambar',
                   hintStyle: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     color: AppColors.textHint,
                   ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -815,7 +815,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               Text(
                 'Pisahkan dengan koma',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 12,
                   color: AppColors.textHint,
                 ),
@@ -827,7 +827,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 'Batal',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
               ),
             ),
             TextButton(
@@ -837,7 +837,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               },
               child: const Text(
                 'Simpan',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFF41B37E)),
               ),
             ),
           ],
@@ -869,7 +869,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         return AlertDialog(
           title: Text(
             title,
-            style: const TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -878,11 +878,11 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 controller: dialogController,
                 autofocus: true,
                 maxLines: maxLines,
-                style: const TextStyle(fontFamily: AppFonts.sfProRounded),
+                style: const TextStyle(fontFamily: AppFonts.nunito),
                 decoration: InputDecoration(
                   hintText: hint,
                   hintStyle: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     color: AppColors.textHint,
                   ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -897,7 +897,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 Text(
                   helperText,
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 12,
                     color: AppColors.textHint,
                   ),
@@ -910,7 +910,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 'Batal',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
               ),
             ),
             TextButton(
@@ -920,7 +920,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               },
               child: const Text(
                 'Simpan',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+                style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFF41B37E)),
               ),
             ),
           ],
@@ -953,7 +953,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             : const Text(
                 'Simpan Perubahan',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -962,3 +962,4 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
   }
 }
+

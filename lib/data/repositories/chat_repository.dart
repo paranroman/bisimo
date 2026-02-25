@@ -67,3 +67,4 @@ class ChatRepository {
     return []; // Empty history for fresh start
   }
 }
+

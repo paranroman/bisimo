@@ -71,7 +71,7 @@ class StudentDetailScreen extends StatelessWidget {
                 Text(
                   displayName,
                   style: const TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -82,7 +82,7 @@ class StudentDetailScreen extends StatelessWidget {
                   Text(
                     fullName,
                     style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
+                      fontFamily: AppFonts.nunito,
                       fontSize: 14,
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
@@ -232,7 +232,7 @@ class StudentDetailScreen extends StatelessWidget {
                   'Riwayat percakapan ${student.displayName} dengan Cimo\nakan ditampilkan di sini.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 14,
                     color: AppColors.textHint,
                     height: 1.5,
@@ -242,7 +242,7 @@ class StudentDetailScreen extends StatelessWidget {
                 Text(
                   'Segera hadir',
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF41B37E).withValues(alpha: 0.7),
@@ -328,7 +328,7 @@ class _AvatarCircle extends StatelessWidget {
       child: Text(
         displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
         style: TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: size * 0.4,
           fontWeight: FontWeight.w700,
           color: isMale ? const Color(0xFF5B9BD5) : const Color(0xFFFF69B4),
@@ -352,7 +352,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -415,7 +415,7 @@ class _InfoRow extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textHint,
@@ -425,7 +425,7 @@ class _InfoRow extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   color: isEmpty ? AppColors.textHint : AppColors.textPrimary,
@@ -461,7 +461,7 @@ class _HeaderChip extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontFamily: AppFonts.sfProRounded,
+              fontFamily: AppFonts.nunito,
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.white,
@@ -472,3 +472,4 @@ class _HeaderChip extends StatelessWidget {
     );
   }
 }
+

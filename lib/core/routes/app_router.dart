@@ -107,7 +107,7 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return EmotionLoadingScreen(
-            faceImageBytes: extra?['faceImageBytes'] as Uint8List?,
+            faceImagesList: extra?['faceImagesList'] as List<Uint8List>?,
             motionSequence: extra?['motionSequence'] as List<List<double>>?,
           );
         },
@@ -162,3 +162,4 @@ class AppRouter {
         Scaffold(body: Center(child: Text('Route not found: ${state.uri.path}'))),
   );
 }
+

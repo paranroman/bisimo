@@ -81,12 +81,17 @@ class EmotionApiService {
   //  2. WAJAH → EfficientNetB2 (via Chatbot proxy)
   // ══════════════════════════════════════════════════════════════════════
 
-  /// Kirim foto wajah (JPEG bytes 224×224) melalui Chatbot gateway.
-  Future<EmotionResult> detectFaceEmotion(Uint8List faceImageBytes) async {
-    final base64Image = base64Encode(faceImageBytes);
+  /// Kirim foto wajah (list of JPEG bytes 224×224) melalui Chatbot gateway.
+  ///
+  /// **Request body:**
+  /// ```json
+  /// { "image_base64": ["<base64_jpg_1>", "<base64_jpg_2>", ...] }
+  /// ```
+  Future<EmotionResult> detectFaceEmotion(List<Uint8List> faceImagesList) async {
+    final base64Images = faceImagesList.map((bytes) => base64Encode(bytes)).toList();
     return _postAndParse(
       path: '/predict-face',
-      body: {'image_base64': base64Image},
+      body: {'image_base64': base64Images},
       label: 'FaceEmotion',
     );
   }
@@ -108,16 +113,46 @@ class EmotionApiService {
   //  4. SKENARIO 1 — COMBINED (kamera) → /predict-combined
   // ══════════════════════════════════════════════════════════════════════
 
-  /// Kirim face + motion untuk prediksi gabungan + mulai session chatbot.
+  /// Kirim face images + motion untuk prediksi gabungan + mulai session chatbot.
+  ///
+  /// [faceImagesList] berisi 1+ JPEG bytes (224×224), di-capture periodik.
+  /// Server menerima field `face_images` berupa list of base64 strings.
+  ///
+  /// **API Contract (request body):**
+  /// ```json
+  /// {
+  ///   "face_images": ["<base64_jpg_1>", "<base64_jpg_2>", ...],
+  ///   "motion_landmarks": [[...154 floats...], ...60 frames...]
+  /// }
+  /// ```
+  ///
+  /// **API Contract (response body):**
+  /// ```json
+  /// {
+  ///   "session_id": "...",
+  ///   "face_prediction": { "label": "...", "confidence": 0.95 },
+  ///   "motion_prediction": { "label": "...", "confidence": 0.85 },
+  ///   "combined_label": "...",
+  ///   "final_confidence": 0.90,
+  ///   "weight_face": 0.6,
+  ///   "weight_motion": 0.4,
+  ///   "greeting": "..."
+  /// }
+  /// ```
   Future<CombinedEmotionResult> detectCombinedEmotion({
-    required Uint8List faceImageBytes,
+    required List<Uint8List> faceImagesList,
     required List<List<double>> motionSequence,
   }) async {
-    final base64Image = base64Encode(faceImageBytes);
+    final base64Images = faceImagesList.map((bytes) => base64Encode(bytes)).toList();
+
+    debugPrint(
+      '[CombinedEmotion] 📤 Sending ${base64Images.length} face images '
+      '(total ${faceImagesList.fold<int>(0, (sum, b) => sum + b.length) ~/ 1024} KB compressed)',
+    );
 
     final responseBody = await _postRaw(
       path: '/predict-combined',
-      body: {'face_image': base64Image, 'motion_landmarks': motionSequence},
+      body: {'face_images': base64Images, 'motion_landmarks': motionSequence},
       label: 'CombinedEmotion',
       timeout: _chatTimeout,
     );
@@ -208,7 +243,74 @@ class EmotionApiService {
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  //  7. END SESSION
+  //  7. UPDATE EMOTION (mid-session re-detection)
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Kirim ulang face images + motion saat session sudah aktif.
+  ///
+  /// **Request body:**
+  /// ```json
+  /// {
+  ///   "session_id": "uuid-string",
+  ///   "face_images": ["<base64_jpg_1>", "<base64_jpg_2>"],
+  ///   "motion_landmarks": [[...154 floats...], ...60 frames...]
+  /// }
+  /// ```
+  Future<CombinedEmotionResult> updateEmotion({
+    required List<Uint8List> faceImagesList,
+    required List<List<double>> motionSequence,
+  }) async {
+    if (_sessionId == null) {
+      throw EmotionApiException(
+        'Belum ada session aktif. '
+        'Panggil detectCombinedEmotion() atau startSession() terlebih dulu.',
+      );
+    }
+
+    final base64Images = faceImagesList.map((bytes) => base64Encode(bytes)).toList();
+
+    debugPrint(
+      '[UpdateEmotion] 📤 Sending ${base64Images.length} face images '
+      '(session: $_sessionId)',
+    );
+
+    final responseBody = await _postRaw(
+      path: '/update-emotion',
+      body: {
+        'session_id': _sessionId,
+        'face_images': base64Images,
+        'motion_landmarks': motionSequence,
+      },
+      label: 'UpdateEmotion',
+      timeout: _chatTimeout,
+    );
+
+    final json = jsonDecode(responseBody) as Map<String, dynamic>;
+    final facePred = json['face_prediction'] as Map<String, dynamic>;
+    final motionPred = json['motion_prediction'] as Map<String, dynamic>;
+
+    return CombinedEmotionResult(
+      sessionId: json['session_id'] as String,
+      faceEmotion: EmotionResult(
+        emotion: facePred['label'] as String,
+        confidence: (facePred['confidence'] as num).toDouble(),
+      ),
+      motionEmotion: EmotionResult(
+        emotion: motionPred['label'] as String,
+        confidence: (motionPred['confidence'] as num).toDouble(),
+      ),
+      finalEmotion: EmotionResult(
+        emotion: json['combined_label'] as String,
+        confidence: (json['final_confidence'] as num).toDouble(),
+      ),
+      weightFace: (json['weight_face'] as num).toDouble(),
+      weightMotion: (json['weight_motion'] as num).toDouble(),
+      greeting: json['greeting'] as String,
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  8. END SESSION
   // ══════════════════════════════════════════════════════════════════════
 
   Future<void> endSession() async {
@@ -393,3 +495,4 @@ class EmotionApiException implements Exception {
   @override
   String toString() => 'EmotionApiException: $message';
 }
+

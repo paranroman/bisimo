@@ -104,3 +104,4 @@ class StudentSession {
     return 'StudentSession(studentId: $studentId, displayName: $displayName, valid: $isValid)';
   }
 }
+

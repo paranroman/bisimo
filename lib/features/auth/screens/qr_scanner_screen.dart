@@ -217,7 +217,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             const Text(
               'Scan QR Code',
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
@@ -301,7 +301,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     child: Text(
                       'Arahkan kamera ke QR Code yang diberikan oleh gurumu',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: Colors.white,
@@ -324,7 +324,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   label: const Text(
                     'Pilih dari Galeri',
                     style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
+                      fontFamily: AppFonts.nunito,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
@@ -342,7 +342,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   child: const Text(
                     'Ketik Manual',
                     style: TextStyle(
-                      fontFamily: AppFonts.sfProRounded,
+                      fontFamily: AppFonts.nunito,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
@@ -383,7 +383,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               const Text(
                 'QR Code Terdeteksi!',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -393,7 +393,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               Text(
                 _scannedCode ?? '',
                 style: const TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary,
@@ -404,7 +404,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               const Text(
                 'Sedang masuk...',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: AppColors.textSecondary,
@@ -437,7 +437,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             Text(
               'Tidak dapat mengakses kamera',
               style: const TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -447,7 +447,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             Text(
               'Pastikan aplikasi memiliki izin untuk menggunakan kamera',
               style: const TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -466,7 +466,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               ),
               child: const Text(
                 'Kembali',
-                style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w600),
+                style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -595,3 +595,4 @@ class QRScannerOverlayShape extends ShapeBorder {
     );
   }
 }
+

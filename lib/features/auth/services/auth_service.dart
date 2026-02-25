@@ -145,3 +145,4 @@ class AuthResult {
     return AuthResult._(isSuccess: false, message: message);
   }
 }
+

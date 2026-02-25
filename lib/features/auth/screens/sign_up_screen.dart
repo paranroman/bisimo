@@ -109,7 +109,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontFamily: AppFonts.sfProRounded)),
+        content: Text(message, style: const TextStyle(fontFamily: AppFonts.nunito)),
         backgroundColor: AppColors.textPrimary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -155,7 +155,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const Text(
                         'Daftar Akun Baru',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
@@ -241,7 +241,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             child: Text(
                               'atau',
                               style: TextStyle(
-                                fontFamily: AppFonts.sfProRounded,
+                                fontFamily: AppFonts.nunito,
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
                               ),
@@ -274,7 +274,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           child: RichText(
                             text: const TextSpan(
                               style: TextStyle(
-                                fontFamily: AppFonts.sfProRounded,
+                                fontFamily: AppFonts.nunito,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.textPrimary,
@@ -329,7 +329,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 16,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
@@ -349,7 +349,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
@@ -357,7 +357,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 16,
           fontWeight: FontWeight.w400,
           color: AppColors.textHint,
@@ -379,3 +379,4 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
+

@@ -13,9 +13,9 @@ import '../services/emotion_api_service.dart';
 import '../screens/detection_error_screen.dart';
 
 class EmotionLoadingScreen extends StatefulWidget {
-  const EmotionLoadingScreen({super.key, this.faceImageBytes, this.motionSequence});
+  const EmotionLoadingScreen({super.key, this.faceImagesList, this.motionSequence});
 
-  final Uint8List? faceImageBytes;
+  final List<Uint8List>? faceImagesList;
   final List<List<double>>? motionSequence;
 
   @override
@@ -98,7 +98,7 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
     final stopwatch = Stopwatch()..start();
 
     // Validate required data — navigate to error screen if missing
-    if (widget.faceImageBytes == null) {
+    if (widget.faceImagesList == null || widget.faceImagesList!.isEmpty) {
       debugPrint('[EmotionLoading] ❌ Missing face data.');
       if (mounted && !_hasNavigated) {
         _hasNavigated = true;
@@ -119,7 +119,7 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
 
     try {
       final CombinedEmotionResult result = await _emotionApi.detectCombinedEmotion(
-        faceImageBytes: widget.faceImageBytes!,
+        faceImagesList: widget.faceImagesList!,
         motionSequence: widget.motionSequence!,
       );
 
@@ -268,3 +268,4 @@ class _SonarWavePainter extends CustomPainter {
     return oldDelegate.progress != progress;
   }
 }
+

@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text(
           'Halaman Beranda',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -183,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const Text(
                         'Bercerita dengan teks.',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
@@ -203,3 +203,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

@@ -19,7 +19,7 @@ class AppTextStyles {
 
   /// App Tagline - SF Pro Rounded Regular
   static const TextStyle appTagline = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
@@ -37,7 +37,7 @@ class AppTextStyles {
 
   /// Button Text - SF Pro Rounded Bold
   static const TextStyle buttonText = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 16,
     fontWeight: FontWeight.w700,
     color: AppColors.textOnPrimary,
@@ -46,7 +46,7 @@ class AppTextStyles {
 
   /// Link Text - SF Pro Rounded Bold
   static const TextStyle linkText = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 14,
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
@@ -98,7 +98,7 @@ class AppTextStyles {
   // ============ BODY TEXT ============
 
   static const TextStyle bodyLarge = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
@@ -106,7 +106,7 @@ class AppTextStyles {
   );
 
   static const TextStyle bodyMedium = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
@@ -114,7 +114,7 @@ class AppTextStyles {
   );
 
   static const TextStyle bodySmall = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
@@ -124,7 +124,7 @@ class AppTextStyles {
   // ============ LABELS ============
 
   static const TextStyle labelLarge = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -132,7 +132,7 @@ class AppTextStyles {
   );
 
   static const TextStyle labelMedium = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
@@ -140,7 +140,7 @@ class AppTextStyles {
   );
 
   static const TextStyle labelSmall = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 10,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
@@ -150,7 +150,7 @@ class AppTextStyles {
   // ============ BUTTON ============
 
   static const TextStyle buttonLarge = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 16,
     fontWeight: FontWeight.w700,
     color: AppColors.textOnPrimary,
@@ -158,7 +158,7 @@ class AppTextStyles {
   );
 
   static const TextStyle buttonMedium = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 14,
     fontWeight: FontWeight.w700,
     color: AppColors.textOnPrimary,
@@ -168,7 +168,7 @@ class AppTextStyles {
   // ============ CAPTION ============
 
   static const TextStyle caption = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.textHint,
@@ -178,7 +178,7 @@ class AppTextStyles {
   // ============ INPUT ============
 
   static const TextStyle input = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
@@ -186,7 +186,7 @@ class AppTextStyles {
   );
 
   static const TextStyle inputHint = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.textHint,
@@ -194,7 +194,7 @@ class AppTextStyles {
   );
 
   static const TextStyle inputError = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.error,
@@ -204,7 +204,7 @@ class AppTextStyles {
   // ============ LINK ============
 
   static const TextStyle link = TextStyle(
-    fontFamily: AppFonts.sfProRounded,
+    fontFamily: AppFonts.nunito,
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.primary,
@@ -212,3 +212,4 @@ class AppTextStyles {
     decoration: TextDecoration.underline,
   );
 }
+

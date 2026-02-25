@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -146,10 +148,31 @@ Uint8List? _cropAndResizeFace(_CropParams p) {
       interpolation: img.Interpolation.linear,
     );
 
-    return Uint8List.fromList(img.encodeJpg(resized, quality: 90));
+    return Uint8List.fromList(img.encodeJpg(resized, quality: 70));
   } catch (_) {
     return null;
   }
+}
+
+/// Compresses JPEG bytes further for network transfer.
+///
+/// Decodes the input JPEG → re-encodes at [quality] (default 50).
+/// Runs via `compute()` in a background isolate.
+Uint8List? _compressJpeg(_CompressParams p) {
+  try {
+    final decoded = img.decodeJpg(p.bytes);
+    if (decoded == null) return null;
+    return Uint8List.fromList(img.encodeJpg(decoded, quality: p.quality));
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Parameters for [_compressJpeg] isolate function.
+class _CompressParams {
+  final Uint8List bytes;
+  final int quality;
+  _CompressParams({required this.bytes, required this.quality});
 }
 
 /// Converts YUV420 (Android camera) image data to an [img.Image].
@@ -220,6 +243,12 @@ class _CameraScreenState extends State<CameraScreen> {
   Uint8List? _processedFaceBytes;
   File? _processedFaceFile;
 
+  // ── Periodic face capture (every 3 seconds) ────────────────────────────
+  Timer? _faceCaptureTimer;
+  final List<String> _capturedFacePaths = [];
+  Directory? _faceTempDir;
+  static const Duration _captureInterval = Duration(seconds: 3);
+
   // ── UI state ───────────────────────────────────────────────────────────
   bool _isSending = false;
   bool _faceDetected = false;
@@ -250,14 +279,74 @@ class _CameraScreenState extends State<CameraScreen> {
     _initFaceDetector();
     _initHandLandmarkService();
     _initializeCamera();
+    _initFaceTempDir();
   }
 
   @override
   void dispose() {
+    _faceCaptureTimer?.cancel();
     _cameraController?.dispose();
     _faceDetector.close();
     _handLandmarkService?.dispose();
     super.dispose();
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
+  //  Temp Directory for Periodic Face Captures
+  // ────────────────────────────────────────────────────────────────────────
+
+  Future<void> _initFaceTempDir() async {
+    final tmp = await getTemporaryDirectory();
+    _faceTempDir = Directory('${tmp.path}/bisimo_face_captures');
+    if (await _faceTempDir!.exists()) {
+      await _faceTempDir!.delete(recursive: true);
+    }
+    await _faceTempDir!.create(recursive: true);
+    debugPrint('[CameraScreen] 📂 Temp face dir: ${_faceTempDir!.path}');
+  }
+
+  /// Start periodic timer that saves face snapshot every 3 seconds.
+  void _startFaceCaptureTimer() {
+    _faceCaptureTimer?.cancel();
+    _faceCaptureTimer = Timer.periodic(_captureInterval, (_) => _saveFaceSnapshot());
+    debugPrint('[CameraScreen] ⏱️ Face capture timer started (every 3s)');
+  }
+
+  /// Save the latest processed face bytes to the temp directory.
+  Future<void> _saveFaceSnapshot() async {
+    if (_processedFaceBytes == null || _faceTempDir == null) return;
+
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final filePath = '${_faceTempDir!.path}/face_$timestamp.jpg';
+      final file = File(filePath);
+      await file.writeAsBytes(_processedFaceBytes!);
+      _capturedFacePaths.add(filePath);
+
+      debugPrint(
+        '[CameraScreen] 📸 Face #${_capturedFacePaths.length} saved '
+        '(${(_processedFaceBytes!.length / 1024).toStringAsFixed(1)} KB): $filePath',
+      );
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('[CameraScreen] ⚠️ Error saving face snapshot: $e');
+    }
+  }
+
+  /// Delete all captured face images from temp directory.
+  Future<void> _cleanupTempFaces() async {
+    try {
+      if (_faceTempDir != null && await _faceTempDir!.exists()) {
+        await _faceTempDir!.delete(recursive: true);
+        debugPrint(
+          '[CameraScreen] 🗑️ Temp face dir cleaned '
+          '(${_capturedFacePaths.length} images deleted)',
+        );
+      }
+      _capturedFacePaths.clear();
+    } catch (e) {
+      debugPrint('[CameraScreen] ⚠️ Error cleaning temp faces: $e');
+    }
   }
 
   // ────────────────────────────────────────────────────────────────────────
@@ -317,6 +406,9 @@ class _CameraScreenState extends State<CameraScreen> {
 
       // Start the image stream for real-time face detection
       _cameraController!.startImageStream(_onCameraFrame);
+
+      // Start periodic face capture timer (every 3 seconds)
+      _startFaceCaptureTimer();
     } catch (e) {
       debugPrint('[CameraScreen] Error initializing camera: $e');
     }
@@ -610,16 +702,45 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() => _isSending = true);
 
     try {
-      // Stop image stream before navigating
+      // Stop periodic capture & image stream before processing
+      _faceCaptureTimer?.cancel();
       await _cameraController?.stopImageStream();
 
+      // ── Also save the very latest frame as a final snapshot ────────
       if (_processedFaceBytes != null) {
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/face_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        _processedFaceFile = File(filePath);
-        await _processedFaceFile!.writeAsBytes(_processedFaceBytes!);
+        await _saveFaceSnapshot();
+      }
 
-        debugPrint('[CameraScreen] 📁 Processed face saved: $filePath');
+      // ── Read all captured face images & compress for upload ────────
+      final List<Uint8List> faceImagesList = [];
+      int totalOriginalBytes = 0;
+      int totalCompressedBytes = 0;
+
+      for (final path in _capturedFacePaths) {
+        final file = File(path);
+        if (await file.exists()) {
+          final rawBytes = await file.readAsBytes();
+          totalOriginalBytes += rawBytes.length;
+
+          // Compress each image in a background isolate
+          final compressed = await compute(
+            _compressJpeg,
+            _CompressParams(bytes: rawBytes, quality: 50),
+          );
+          if (compressed != null) {
+            faceImagesList.add(compressed);
+            totalCompressedBytes += compressed.length;
+          }
+        }
+      }
+
+      if (faceImagesList.isNotEmpty) {
+        debugPrint(
+          '[CameraScreen] 🗜️ ${faceImagesList.length} face images compressed: '
+          '${(totalOriginalBytes / 1024).toStringAsFixed(1)} KB → '
+          '${(totalCompressedBytes / 1024).toStringAsFixed(1)} KB '
+          '(${(100 - totalCompressedBytes * 100 / totalOriginalBytes).toStringAsFixed(0)}% smaller)',
+        );
       } else {
         debugPrint('[CameraScreen] ⚠️ Tidak ada wajah terdeteksi untuk dikirim.');
       }
@@ -639,15 +760,19 @@ class _CameraScreenState extends State<CameraScreen> {
 
       // ── Navigate ke Loading Screen, bawa data mentah ──────────────
       // Loading Screen akan memanggil cloud API selama animasi loading.
+      // Face images dikirim sebagai List<Uint8List> (multiple JPEG 224×224).
       if (mounted) {
         context.push(
           AppRoutes.emotionDetection,
           extra: <String, dynamic>{
-            'faceImageBytes': _processedFaceBytes, // Uint8List? JPEG 224×224
+            'faceImagesList': faceImagesList.isNotEmpty ? faceImagesList : null,
             'motionSequence': interpolatedSequence, // List<List<double>>? (60×154)
           },
         );
       }
+
+      // ── Cleanup temp folder after navigation ──────────────────────
+      await _cleanupTempFaces();
     } catch (e) {
       debugPrint('[CameraScreen] Error during send: $e');
     } finally {
@@ -680,7 +805,7 @@ class _CameraScreenState extends State<CameraScreen> {
         title: const Text(
           'Deteksi Emosional',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -765,7 +890,7 @@ class _CameraScreenState extends State<CameraScreen> {
                         Text(
                           _faceDetected ? 'Wajah Terdeteksi' : 'Wajah Tidak Terdeteksi',
                           style: const TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -776,6 +901,36 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                 ),
               ),
+
+              // ── Captured face count indicator ─────────────────────
+              if (_capturedFacePaths.isNotEmpty)
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.photo_camera, color: Colors.white, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_capturedFacePaths.length}',
+                          style: const TextStyle(
+                            fontFamily: AppFonts.nunito,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
               // ── Motion sequence collection indicator ───────────────
               Positioned(
@@ -799,7 +954,7 @@ class _CameraScreenState extends State<CameraScreen> {
                               ? 'Tunjuk isyarat tanganmu'
                               : 'Rekam isyarat...',
                           style: const TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -886,7 +1041,7 @@ class _CameraScreenState extends State<CameraScreen> {
                           Text(
                             'Kirim',
                             style: TextStyle(
-                              fontFamily: AppFonts.sfProRounded,
+                              fontFamily: AppFonts.nunito,
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: _faceDetected ? Colors.black : Colors.white,
@@ -1016,3 +1171,4 @@ class _FaceBoundingBoxPainter extends CustomPainter {
   @override
   bool shouldRepaint(_FaceBoundingBoxPainter oldDelegate) => oldDelegate.boundingBox != boundingBox;
 }
+

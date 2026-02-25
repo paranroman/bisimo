@@ -25,7 +25,7 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
         onError: AppColors.textOnPrimary,
       ),
-      fontFamily: AppFonts.sfProRounded,
+      fontFamily: AppFonts.nunito,
 
       // AppBar Theme
       appBarTheme: const AppBarTheme(
@@ -34,7 +34,7 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         titleTextStyle: TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -55,7 +55,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusM)),
           elevation: 0,
           textStyle: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -67,7 +67,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -86,7 +86,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusM)),
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           textStyle: const TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -122,17 +122,17 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.error, width: AppSizes.inputBorderWidth),
         ),
         hintStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 16,
           color: AppColors.textHint,
         ),
         labelStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 14,
           color: AppColors.textSecondary,
         ),
         errorStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 12,
           color: AppColors.error,
         ),
@@ -166,12 +166,12 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         selectedLabelStyle: TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
         unselectedLabelStyle: TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 12,
           fontWeight: FontWeight.normal,
         ),
@@ -181,7 +181,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
         contentTextStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 14,
           color: AppColors.textOnPrimary,
         ),
@@ -194,13 +194,13 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusL)),
         titleTextStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         contentTextStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 14,
           color: AppColors.textSecondary,
         ),
@@ -208,3 +208,4 @@ class AppTheme {
     );
   }
 }
+

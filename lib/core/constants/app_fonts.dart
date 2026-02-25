@@ -8,6 +8,7 @@ class AppFonts {
   /// Lexend - Used for headings and important text
   static const String lexend = 'Lexend';
 
-  /// SF Pro Rounded - Used for body text and buttons
-  static const String sfProRounded = 'SFProRounded';
+  /// Nunito - Used for body text and buttons
+  static const String nunito = 'Nunito';
 }
+

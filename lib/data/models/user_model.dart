@@ -103,3 +103,4 @@ class UserModel {
   @override
   int get hashCode => id.hashCode;
 }
+

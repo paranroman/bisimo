@@ -168,3 +168,4 @@ class HandLandmarkService {
     return wrist.x > 0.5;
   }
 }
+

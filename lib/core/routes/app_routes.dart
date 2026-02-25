@@ -40,3 +40,4 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String journal = '/journal';
 }
+

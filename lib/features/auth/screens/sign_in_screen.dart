@@ -165,7 +165,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontFamily: AppFonts.sfProRounded)),
+        content: Text(message, style: const TextStyle(fontFamily: AppFonts.nunito)),
         backgroundColor: isSuccess ? AppColors.primary : AppColors.textPrimary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -211,7 +211,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                       const Text(
                         'Masuk ke dalam Akun',
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
@@ -290,12 +290,12 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
         labelColor: _currentTabIndex == 0 ? AppColors.primary : const Color(0xFF41B37E),
         unselectedLabelColor: AppColors.textSecondary,
         labelStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -374,7 +374,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
             child: RichText(
               text: const TextSpan(
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: AppColors.textPrimary,
@@ -415,7 +415,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                 child: Text(
                   'Hai! Minta kode token dari guru atau wali kelasmu ya!',
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
@@ -442,7 +442,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
               child: Text(
                 'atau',
                 style: TextStyle(
-                  fontFamily: AppFonts.sfProRounded,
+                  fontFamily: AppFonts.nunito,
                   fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
@@ -484,7 +484,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       ],
       textAlign: TextAlign.center,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 28,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
@@ -493,7 +493,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       decoration: InputDecoration(
         hintText: 'ABC-123',
         hintStyle: TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 28,
           fontWeight: FontWeight.w400,
           color: AppColors.textHint.withValues(alpha: 0.5),
@@ -556,7 +556,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                 Text(
                   'Scan QR Code',
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF41B37E),
@@ -565,7 +565,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                 Text(
                   'Arahkan kamera ke kode QR',
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
@@ -603,7 +603,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
             Text(
               'Upload QR dari Galeri',
               style: TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
@@ -657,7 +657,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                     Text(
                       'Masuk',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
@@ -677,7 +677,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 16,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
@@ -697,7 +697,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       keyboardType: keyboardType,
       obscureText: obscureText,
       style: const TextStyle(
-        fontFamily: AppFonts.sfProRounded,
+        fontFamily: AppFonts.nunito,
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
@@ -705,7 +705,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(
-          fontFamily: AppFonts.sfProRounded,
+          fontFamily: AppFonts.nunito,
           fontSize: 16,
           fontWeight: FontWeight.w400,
           color: AppColors.textHint,
@@ -735,3 +735,4 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     return TextEditingValue(text: newValue.text.toUpperCase(), selection: newValue.selection);
   }
 }
+

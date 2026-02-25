@@ -56,7 +56,7 @@ class EmotionButton extends StatelessWidget {
                         const Text(
                           'Kenali emosi mu',
                           style: TextStyle(
-                            fontFamily: AppFonts.sfProRounded,
+                            fontFamily: AppFonts.nunito,
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
@@ -72,7 +72,7 @@ class EmotionButton extends StatelessWidget {
                     const Text(
                       'Bercerita kepada kamera dengan wajah dan bahasa isyarat',
                       style: TextStyle(
-                        fontFamily: AppFonts.sfProRounded,
+                        fontFamily: AppFonts.nunito,
                         fontSize: 11,
                         fontWeight: FontWeight.w400,
                         color: Colors.black87,
@@ -126,3 +126,4 @@ class _SparklePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

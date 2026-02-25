@@ -40,18 +40,18 @@ class SettingsScreen extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text(
           'Kirim Masukan',
-          style: TextStyle(fontFamily: AppFonts.sfProRounded, fontWeight: FontWeight.w700),
+          style: TextStyle(fontFamily: AppFonts.nunito, fontWeight: FontWeight.w700),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Kirim email ke:', style: TextStyle(fontFamily: AppFonts.sfProRounded)),
+            const Text('Kirim email ke:', style: TextStyle(fontFamily: AppFonts.nunito)),
             const SizedBox(height: 8),
             SelectableText(
               email,
               style: const TextStyle(
-                fontFamily: AppFonts.sfProRounded,
+                fontFamily: AppFonts.nunito,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF41B37E),
               ),
@@ -72,14 +72,14 @@ class SettingsScreen extends StatelessWidget {
             },
             child: const Text(
               'Salin Email',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: Color(0xFF41B37E)),
+              style: TextStyle(fontFamily: AppFonts.nunito, color: Color(0xFF41B37E)),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Tutup',
-              style: TextStyle(fontFamily: AppFonts.sfProRounded, color: AppColors.textHint),
+              style: TextStyle(fontFamily: AppFonts.nunito, color: AppColors.textHint),
             ),
           ),
         ],
@@ -105,7 +105,7 @@ class SettingsScreen extends StatelessWidget {
         title: const Text(
           'Pengaturan',
           style: TextStyle(
-            fontFamily: AppFonts.sfProRounded,
+            fontFamily: AppFonts.nunito,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -161,7 +161,7 @@ class SettingsScreen extends StatelessWidget {
                 const Text(
                   'Tentang Kami',
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -171,7 +171,7 @@ class SettingsScreen extends StatelessWidget {
                 const Text(
                   'Bisimo adalah Aplikasi mendeteksi emosional anak-anak tunarungu dari Bahasa Isyarat Bisindo serta mimik wajah anak.',
                   style: TextStyle(
-                    fontFamily: AppFonts.sfProRounded,
+                    fontFamily: AppFonts.nunito,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: AppColors.textPrimary,
@@ -204,7 +204,7 @@ class SettingsScreen extends StatelessWidget {
                         'Beri Masukan',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: AppFonts.sfProRounded,
+                          fontFamily: AppFonts.nunito,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
@@ -223,3 +223,4 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
+
