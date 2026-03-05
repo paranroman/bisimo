@@ -6,6 +6,7 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
 import '../../../shared/widgets/icons/google_icon.dart';
@@ -119,6 +120,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final r = ResponsiveHelper.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -128,41 +131,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header Image with Cimo
-                Image.asset(
-                  AssetPaths.signUpHeader,
-                  width: double.infinity,
-                  fit: BoxFit.fitWidth,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 250,
-                      color: AppColors.primaryLight.withValues(alpha: 0.3),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 80, color: AppColors.textHint),
-                      ),
-                    );
-                  },
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: r.img(300)),
+                  child: Image.asset(
+                    AssetPaths.signUpHeader,
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: r.img(250),
+                        color: AppColors.primaryLight.withValues(alpha: 0.3),
+                        child: Center(
+                          child: Icon(Icons.image, size: r.img(80), color: AppColors.textHint),
+                        ),
+                      );
+                    },
+                  ),
                 ),
 
                 // Form Section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(AppSizes.paddingL)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: AppSizes.spaceL),
+                      SizedBox(height: r.h(AppSizes.spaceL)),
 
                       // Title
-                      const Text(
+                      Text(
                         'Daftar Akun Baru',
                         style: TextStyle(
                           fontFamily: AppFonts.nunito,
-                          fontSize: 24,
+                          fontSize: r.sp(24),
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: AppSizes.spaceXL),
+                      SizedBox(height: r.h(AppSizes.spaceXL)),
 
                       // Email Field
                       _buildLabel('Email'),

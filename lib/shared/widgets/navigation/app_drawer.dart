@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../features/auth/services/profile_service.dart';
 import '../../../providers/auth_provider.dart';
 
@@ -132,15 +133,20 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Row(
+    return Builder(
+      builder: (context) {
+        final r = ResponsiveHelper.of(context);
+        final iconSize = r.img(70);
+
+        return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // App Icon
         Container(
-          width: 70,
-          height: 70,
+          width: iconSize,
+          height: iconSize,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(r.radius(16)),
             color: Colors.white,
             boxShadow: [
               BoxShadow(
@@ -151,30 +157,30 @@ class AppDrawer extends StatelessWidget {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(r.radius(16)),
             child: Image.asset(AssetPaths.iconBisimo, fit: BoxFit.cover),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: r.w(12)),
 
         // App Info
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Bisimo',
               style: TextStyle(
                 fontFamily: AppFonts.baloo2,
-                fontSize: 28,
+                fontSize: r.sp(28),
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
               ),
             ),
-            const Text(
+            Text(
               'Aplikasi Bahasa\nIsyarat Deteksi\nEmosional untuk\nAnak Tunarungu',
               style: TextStyle(
                 fontFamily: AppFonts.nunito,
-                fontSize: 12,
+                fontSize: r.sp(12),
                 fontWeight: FontWeight.w400,
                 color: AppColors.textPrimary,
                 height: 1.3,
@@ -183,6 +189,8 @@ class AppDrawer extends StatelessWidget {
           ],
         ),
       ],
+    );
+      },
     );
   }
 

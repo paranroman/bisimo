@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../data/models/student_model.dart';
 import '../../../providers/student_provider.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
@@ -273,8 +274,11 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
   }
 
   Widget _buildHeader(int studentCount) {
+    final r = ResponsiveHelper.of(context);
+    final avatarSize = r.img(80);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(r.w(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -287,14 +291,14 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(r.w(20)),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF41B37E), Color(0xFF2D7D58)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(r.radius(20)),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF2D7D58).withValues(alpha: 0.3),
@@ -307,12 +311,12 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                 children: [
                   // Avatar - show photo if available
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: avatarSize,
+                    height: avatarSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: const Color(0xFFFFBD30),
-                      border: Border.all(color: Colors.white, width: 3),
+                      border: Border.all(color: Colors.white, width: r.w(3)),
                     ),
                     child: ClipOval(
                       child: _waliPhotoUrl != null && _waliPhotoUrl!.isNotEmpty
@@ -332,37 +336,37 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                             ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: r.w(16)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Selamat Datang,',
                           style: TextStyle(
                             fontFamily: AppFonts.nunito,
-                            fontSize: 14,
+                            fontSize: r.sp(14),
                             fontWeight: FontWeight.w400,
                             color: Colors.white70,
                           ),
                         ),
                         Text(
                           '$_formattedWaliName!',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: AppFonts.nunito,
-                            fontSize: 22,
+                            fontSize: r.sp(22),
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: r.h(4)),
                         Text(
                           '$studentCount murid terdaftar',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: AppFonts.nunito,
-                            fontSize: 14,
+                            fontSize: r.sp(14),
                             fontWeight: FontWeight.w500,
                             color: Colors.white70,
                           ),
@@ -371,18 +375,18 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
                     ),
                   ),
                   // Edit indicator
-                  const Icon(Icons.edit, color: Colors.white70, size: 20),
+                  Icon(Icons.edit, color: Colors.white70, size: r.img(20)),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
           // Section Title
-          const Text(
+          Text(
             'Daftar Murid',
             style: TextStyle(
               fontFamily: AppFonts.nunito,
-              fontSize: 18,
+              fontSize: r.sp(18),
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
@@ -393,18 +397,21 @@ class _WaliDashboardScreenState extends State<WaliDashboardScreen> {
   }
 
   Widget _buildEmptyState() {
+    final r = ResponsiveHelper.of(context);
+    final emptyIconSize = r.img(120);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 120,
-            height: 120,
+            width: emptyIconSize,
+            height: emptyIconSize,
             decoration: BoxDecoration(
               color: const Color(0xFF41B37E).withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.people_outline, size: 60, color: Color(0xFF41B37E)),
+            child: Icon(Icons.people_outline, size: r.img(60), color: const Color(0xFF41B37E)),
           ),
           const SizedBox(height: 24),
           const Text(

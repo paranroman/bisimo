@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 /// Tipe error deteksi emosi.
 enum DetectionErrorType { faceNotDetected, handNotDetected, apiError }
@@ -29,90 +30,93 @@ class DetectionErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = ResponsiveHelper.of(context);
+    final cimoSize = r.img(180);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: r.w(32)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Cimo sedih
                 SizedBox(
-                  width: 180,
-                  height: 180,
+                  width: cimoSize,
+                  height: cimoSize,
                   child: Image.asset(AssetPaths.cimoSad, fit: BoxFit.contain),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: r.h(32)),
 
                 // Judul
                 Text(
                   _title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: AppFonts.nunito,
-                    fontSize: 20,
+                    fontSize: r.sp(20),
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
 
                 // Pesan error
                 Text(
                   _message,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: AppFonts.nunito,
-                    fontSize: 14,
+                    fontSize: r.sp(14),
                     fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: r.h(40)),
 
                 // Tombol "Coba Lagi"
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: r.h(50),
                   child: ElevatedButton(
                     onPressed: () => context.go(AppRoutes.camera),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF41B37E),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radius(25))),
                       elevation: 0,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Coba Lagi',
                       style: TextStyle(
                         fontFamily: AppFonts.nunito,
-                        fontSize: 16,
+                        fontSize: r.sp(16),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: r.h(12)),
 
                 // Tombol "Chat Tanpa Kamera"
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: r.h(50),
                   child: OutlinedButton(
                     onPressed: () => context.go(AppRoutes.chat),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF41B37E),
                       side: const BorderSide(color: Color(0xFF41B37E), width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radius(25))),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Chat Tanpa Kamera',
                       style: TextStyle(
                         fontFamily: AppFonts.nunito,
-                        fontSize: 16,
+                        fontSize: r.sp(16),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

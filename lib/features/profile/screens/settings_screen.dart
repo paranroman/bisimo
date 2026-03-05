@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
 
 /// Settings Screen - Pengaturan
@@ -131,7 +132,13 @@ class SettingsScreen extends StatelessWidget {
           // Content
           SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
+            child: Builder(
+              builder: (context) {
+                final r = ResponsiveHelper.of(context);
+                final avatarSize = r.img(160);
+                final cimoInnerSize = r.img(100);
+
+                return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
@@ -139,48 +146,48 @@ class SettingsScreen extends StatelessWidget {
                 // Cimo Avatar
                 Center(
                   child: Container(
-                    width: 160,
-                    height: 160,
+                    width: avatarSize,
+                    height: avatarSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: const Color(0xFFFFBD30),
-                      border: Border.all(color: const Color(0xFFFFD859), width: 8),
+                      border: Border.all(color: const Color(0xFFFFD859), width: r.w(8)),
                     ),
                     child: Center(
                       child: SizedBox(
-                        width: 100,
-                        height: 100,
+                        width: cimoInnerSize,
+                        height: cimoInnerSize,
                         child: Image.asset(AssetPaths.cimoJoy, fit: BoxFit.contain),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: r.h(40)),
 
                 // Tentang Kami Section
-                const Text(
+                Text(
                   'Tentang Kami',
                   style: TextStyle(
                     fontFamily: AppFonts.nunito,
-                    fontSize: 16,
+                    fontSize: r.sp(16),
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: r.h(8)),
+                Text(
                   'Bisimo adalah Aplikasi mendeteksi emosional anak-anak tunarungu dari Bahasa Isyarat Bisindo serta mimik wajah anak.',
                   style: TextStyle(
                     fontFamily: AppFonts.nunito,
-                    fontSize: 14,
+                    fontSize: r.sp(14),
                     fontWeight: FontWeight.w400,
                     color: AppColors.textPrimary,
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
                 Divider(color: Colors.grey.shade300),
-                const SizedBox(height: 30),
+                SizedBox(height: r.h(30)),
 
                 // Beri Masukan Button
                 Center(
@@ -188,10 +195,10 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () => _openFeedback(context),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: r.h(16)),
                       decoration: BoxDecoration(
                         color: const Color(0xFF41B37E),
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(r.radius(30)),
                         boxShadow: [
                           BoxShadow(
                             color: const Color(0xFF2D7D58),
@@ -200,12 +207,12 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Text(
+                      child: Text(
                         'Beri Masukan',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: AppFonts.nunito,
-                          fontSize: 16,
+                          fontSize: r.sp(16),
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
                         ),
@@ -216,6 +223,8 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 100),
               ],
+            );
+              },
             ),
           ),
         ],

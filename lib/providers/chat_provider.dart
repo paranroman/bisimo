@@ -215,9 +215,5 @@ class ChatProvider extends ChangeNotifier {
     _latestEmotionConfidence = null;
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 

@@ -8,6 +8,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../data/models/student_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
@@ -463,6 +464,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   }
 
   Widget _buildHeader() {
+    final r = ResponsiveHelper.of(context);
+    final avatarSize = r.img(120);
     final fullName = _student?.lockedProfile.fullName ?? 'Murid';
     final nickname = _student?.editableProfile.nickname;
     final displayName = (nickname != null && nickname.isNotEmpty) ? nickname : fullName;
@@ -482,21 +485,21 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           children: [
             // App Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(8)),
               child: Row(
                 children: [
                   Builder(
                     builder: (context) => IconButton(
-                      icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+                      icon: Icon(Icons.menu, color: Colors.white, size: r.img(28)),
                       onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Profil Saya',
                       style: TextStyle(
                         fontFamily: AppFonts.nunito,
-                        fontSize: 18,
+                        fontSize: r.sp(18),
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -508,7 +511,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: r.h(20)),
 
             // Avatar with photo picker
             GestureDetector(
@@ -517,12 +520,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 alignment: Alignment.bottomRight,
                 children: [
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: avatarSize,
+                    height: avatarSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white,
-                      border: Border.all(color: const Color(0xFFFFD859), width: 4),
+                      border: Border.all(color: const Color(0xFFFFD859), width: r.w(4)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.15),
@@ -535,45 +538,45 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   ),
                   // Camera icon
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(r.w(8)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF41B37E),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
+                      border: Border.all(color: Colors.white, width: r.w(3)),
                     ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                    child: Icon(Icons.camera_alt, color: Colors.white, size: r.img(18)),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: r.h(16)),
 
             // Name
             Text(
               displayName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: AppFonts.nunito,
-                fontSize: 24,
+                fontSize: r.sp(24),
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
             ),
 
             if (nickname != null && nickname.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              SizedBox(height: r.h(4)),
               Text(
                 fullName,
                 style: TextStyle(
                   fontFamily: AppFonts.nunito,
-                  fontSize: 14,
+                  fontSize: r.sp(14),
                   fontWeight: FontWeight.w400,
                   color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
             ],
 
-            const SizedBox(height: 30),
+            SizedBox(height: r.h(30)),
           ],
         ),
       ),
@@ -612,12 +615,13 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   }
 
   Widget _buildInitialAvatar(String displayName) {
+    final r = ResponsiveHelper.of(context);
     return Center(
       child: Text(
         displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: AppFonts.baloo2,
-          fontSize: 48,
+          fontSize: r.sp(48),
           fontWeight: FontWeight.w700,
           color: Color(0xFF41B37E),
         ),

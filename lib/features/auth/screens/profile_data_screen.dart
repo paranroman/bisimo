@@ -7,6 +7,7 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
 import '../../../data/models/user_profile.dart';
 import '../../../providers/auth_provider.dart';
@@ -146,6 +147,8 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final r = ResponsiveHelper.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -155,19 +158,22 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header Image
-                Image.asset(
-                  AssetPaths.signUpHeader,
-                  width: double.infinity,
-                  fit: BoxFit.fitWidth,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 200,
-                      color: AppColors.primaryLight.withValues(alpha: 0.3),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 80, color: AppColors.textHint),
-                      ),
-                    );
-                  },
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: r.img(280)),
+                  child: Image.asset(
+                    AssetPaths.signUpHeader,
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: r.img(200),
+                        color: AppColors.primaryLight.withValues(alpha: 0.3),
+                        child: Center(
+                          child: Icon(Icons.image, size: r.img(80), color: AppColors.textHint),
+                        ),
+                      );
+                    },
+                  ),
                 ),
 
                 // Form Section

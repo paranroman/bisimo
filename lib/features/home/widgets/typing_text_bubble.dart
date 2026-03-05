@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_fonts.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 /// Dynamic text bubble with typing animation
 /// Displays Cimo's greeting message with animated typing effect
@@ -58,13 +59,17 @@ class _TypingTextBubbleState extends State<TypingTextBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final r = ResponsiveHelper.of(context);
     return CustomPaint(
       painter: _BubblePainter(),
-      child: Container(padding: const EdgeInsets.fromLTRB(20, 20, 20, 28), child: _buildRichText()),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), r.h(28)),
+        child: _buildRichText(r),
+      ),
     );
   }
 
-  Widget _buildRichText() {
+  Widget _buildRichText(ResponsiveHelper r) {
     // Calculate what portions of text to show based on current index
     final prefixEnd = widget.greetingPrefix.length;
     final nameEnd = prefixEnd + widget.userName.length;
@@ -77,42 +82,42 @@ class _TypingTextBubbleState extends State<TypingTextBubble> {
     if (_currentIndex > 0) {
       final showLength = _currentIndex.clamp(0, prefixEnd);
       spans.add(
-        TextSpan(text: widget.greetingPrefix.substring(0, showLength), style: _regularStyle),
+        TextSpan(text: widget.greetingPrefix.substring(0, showLength), style: _regularStyle(r)),
       );
     }
 
     // User name (bold)
     if (_currentIndex > prefixEnd) {
       final showLength = (_currentIndex - prefixEnd).clamp(0, widget.userName.length);
-      spans.add(TextSpan(text: widget.userName.substring(0, showLength), style: _boldStyle));
+      spans.add(TextSpan(text: widget.userName.substring(0, showLength), style: _boldStyle(r)));
     }
 
     // Greeting suffix (bold - part of greeting emphasis)
     if (_currentIndex > nameEnd) {
       final showLength = (_currentIndex - nameEnd).clamp(0, widget.greetingSuffix.length);
-      spans.add(TextSpan(text: widget.greetingSuffix.substring(0, showLength), style: _boldStyle));
+      spans.add(TextSpan(text: widget.greetingSuffix.substring(0, showLength), style: _boldStyle(r)));
     }
 
     // Body text (regular)
     if (_currentIndex > suffixEnd) {
       final showLength = (_currentIndex - suffixEnd).clamp(0, widget.bodyText.length);
-      spans.add(TextSpan(text: widget.bodyText.substring(0, showLength), style: _regularStyle));
+      spans.add(TextSpan(text: widget.bodyText.substring(0, showLength), style: _regularStyle(r)));
     }
 
     // Question text (bold)
     if (_currentIndex > bodyEnd) {
       final showLength = (_currentIndex - bodyEnd).clamp(0, widget.questionText.length);
-      spans.add(TextSpan(text: widget.questionText.substring(0, showLength), style: _boldStyle));
+      spans.add(TextSpan(text: widget.questionText.substring(0, showLength), style: _boldStyle(r)));
     }
 
     // Cursor (blinking effect when typing)
     if (!_isTypingComplete) {
       spans.add(
-        const TextSpan(
+        TextSpan(
           text: '|',
           style: TextStyle(
             fontFamily: AppFonts.lexend,
-            fontSize: 16,
+            fontSize: r.sp(16),
             fontWeight: FontWeight.w400,
             color: Colors.black54,
           ),
@@ -126,17 +131,17 @@ class _TypingTextBubbleState extends State<TypingTextBubble> {
     );
   }
 
-  TextStyle get _regularStyle => const TextStyle(
+  TextStyle _regularStyle(ResponsiveHelper r) => TextStyle(
     fontFamily: AppFonts.lexend,
-    fontSize: 16,
+    fontSize: r.sp(16),
     fontWeight: FontWeight.w400,
     color: Colors.black,
     height: 1.4,
   );
 
-  TextStyle get _boldStyle => const TextStyle(
+  TextStyle _boldStyle(ResponsiveHelper r) => TextStyle(
     fontFamily: AppFonts.lexend,
-    fontSize: 16,
+    fontSize: r.sp(16),
     fontWeight: FontWeight.w700,
     color: Colors.black,
     height: 1.4,

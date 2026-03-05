@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../data/models/student_model.dart';
 
 /// Card widget displaying student information
@@ -47,7 +48,7 @@ class StudentCard extends StatelessWidget {
             child: Row(
               children: [
                 // Avatar — shows photo if student uploaded one
-                _buildAvatar(isMale),
+                _buildAvatar(isMale, context),
                 const SizedBox(width: 16),
 
                 // Info
@@ -148,9 +149,10 @@ class StudentCard extends StatelessWidget {
   }
 
   /// Avatar that shows student photo (base64/network) or initial letter
-  Widget _buildAvatar(bool isMale) {
+  Widget _buildAvatar(bool isMale, BuildContext context) {
+    final r = ResponsiveHelper.of(context);
     final photoUrl = student.editableProfile.photoUrl;
-    const double avatarSize = 56;
+    final double avatarSize = r.img(56);
 
     return Container(
       width: avatarSize,

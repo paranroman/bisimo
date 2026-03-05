@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../data/models/user_profile.dart';
 import '../../auth/services/profile_service.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
@@ -335,6 +336,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildProfileAvatar() {
+    final r = ResponsiveHelper.of(context);
+    final avatarSize = r.img(160);
     final currentUser = FirebaseAuth.instance.currentUser;
     final photoUrl = _profile?.photoUrl ?? currentUser?.photoURL;
 
@@ -344,11 +347,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         alignment: Alignment.bottomRight,
         children: [
           Container(
-            width: 160,
-            height: 160,
+            width: avatarSize,
+            height: avatarSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFFD859), width: 6),
+              border: Border.all(color: const Color(0xFFFFD859), width: r.w(6)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -380,13 +383,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           // Edit avatar badge
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(r.w(8)),
             decoration: BoxDecoration(
               color: const Color(0xFF41B37E),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+              border: Border.all(color: Colors.white, width: r.w(3)),
             ),
-            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+            child: Icon(Icons.camera_alt, color: Colors.white, size: r.img(20)),
           ),
         ],
       );
@@ -397,18 +400,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildDefaultAvatar() {
+    final r = ResponsiveHelper.of(context);
+    final avatarSize = r.img(160);
+    final cimoInnerSize = r.img(100);
+
     return Container(
-      width: 160,
-      height: 160,
+      width: avatarSize,
+      height: avatarSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: const Color(0xFFFFBD30),
-        border: Border.all(color: const Color(0xFFFFD859), width: 8),
+        border: Border.all(color: const Color(0xFFFFD859), width: r.w(8)),
       ),
       child: Center(
         child: SizedBox(
-          width: 100,
-          height: 100,
+          width: cimoInnerSize,
+          height: cimoInnerSize,
           child: Image.asset(AssetPaths.cimoJoy, fit: BoxFit.contain),
         ),
       ),

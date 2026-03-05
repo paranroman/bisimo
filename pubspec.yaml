@@ -69,6 +69,7 @@ dependencies:
   # QR Code scanning
   mobile_scanner: ^7.1.4
 
+  path_provider: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

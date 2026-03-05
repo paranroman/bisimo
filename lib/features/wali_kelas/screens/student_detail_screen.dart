@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../data/models/student_model.dart';
 
 /// Student Detail Screen — viewed by Wali Kelas
@@ -32,13 +33,14 @@ class StudentDetailScreen extends StatelessWidget {
   // ──────────────────────── Header ────────────────────────
 
   SliverAppBar _buildSliverAppBar(BuildContext context) {
+    final r = ResponsiveHelper.of(context);
     final fullName = student.lockedProfile.fullName;
     final nickname = student.editableProfile.nickname;
     final displayName = (nickname != null && nickname.isNotEmpty) ? nickname : fullName;
     final isMale = student.lockedProfile.gender == Gender.male;
 
     return SliverAppBar(
-      expandedHeight: 280,
+      expandedHeight: r.h(280),
       pinned: true,
       backgroundColor: const Color(0xFF41B37E),
       leading: IconButton(
@@ -58,37 +60,37 @@ class StudentDetailScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 40), // space for app bar
+                SizedBox(height: r.h(40)), // space for app bar
                 // Avatar
                 _AvatarCircle(
                   photoUrl: student.editableProfile.photoUrl,
                   displayName: displayName,
                   isMale: isMale,
-                  size: 110,
+                  size: r.img(110),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: r.h(14)),
                 // Name
                 Text(
                   displayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: AppFonts.nunito,
-                    fontSize: 24,
+                    fontSize: r.sp(24),
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
                 if (nickname != null && nickname.isNotEmpty && nickname != fullName) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: r.h(2)),
                   Text(
                     fullName,
                     style: TextStyle(
                       fontFamily: AppFonts.nunito,
-                      fontSize: 14,
+                      fontSize: r.sp(14),
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
-                const SizedBox(height: 8),
+                SizedBox(height: r.h(8)),
                 // Quick chips
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

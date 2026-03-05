@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_fonts.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 /// Emotion detection button with sparkle icon
 /// Green button with 3D shadow effect
@@ -10,10 +11,11 @@ class EmotionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = ResponsiveHelper.of(context);
     const buttonColor = Color(0xFF41B37E);
     const shadowColor = Color(0xFF2D7D58);
-    const buttonHeight = 70.0;
-    const shadowOffset = 5.0;
+    final buttonHeight = r.h(70);
+    final shadowOffset = r.h(5);
 
     return SizedBox(
       width: double.infinity,
@@ -29,7 +31,7 @@ class EmotionButton extends StatelessWidget {
               height: buttonHeight,
               decoration: BoxDecoration(
                 color: shadowColor,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(r.radius(20)),
               ),
             ),
           ),
@@ -44,7 +46,7 @@ class EmotionButton extends StatelessWidget {
                 height: buttonHeight,
                 decoration: BoxDecoration(
                   color: buttonColor,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(r.radius(20)),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -53,27 +55,29 @@ class EmotionButton extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Kenali emosi mu',
                           style: TextStyle(
                             fontFamily: AppFonts.nunito,
-                            fontSize: 20,
+                            fontSize: r.sp(20),
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: r.w(8)),
                         // Sparkle icon
-                        _buildSparkleIcon(),
+                        _buildSparkleIcon(r),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: r.h(2)),
                     // Subtitle
-                    const Text(
+                    Text(
                       'Bercerita kepada kamera dengan wajah dan bahasa isyarat',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: AppFonts.nunito,
-                        fontSize: 11,
+                        fontSize: r.sp(11),
                         fontWeight: FontWeight.w400,
                         color: Colors.black87,
                       ),
@@ -88,8 +92,9 @@ class EmotionButton extends StatelessWidget {
     );
   }
 
-  Widget _buildSparkleIcon() {
-    return CustomPaint(size: const Size(24, 24), painter: _SparklePainter());
+  Widget _buildSparkleIcon(ResponsiveHelper r) {
+    final sparkleSize = r.img(24);
+    return CustomPaint(size: Size(sparkleSize, sparkleSize), painter: _SparklePainter());
   }
 }
 

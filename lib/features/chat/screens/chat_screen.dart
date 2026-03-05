@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../providers/chat_provider.dart';
 import '../../../data/models/chat_message_model.dart';
 import '../../emotion_detection/services/emotion_api_service.dart';
@@ -119,6 +120,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildCimoEmotionCard(ChatProvider provider) {
+    final r = ResponsiveHelper.of(context);
     // Use latest detected emotion (updates from text prediction too)
     final String? latestEmotion = provider.latestEmotion;
     final bool hasEmotion = latestEmotion != null && latestEmotion.isNotEmpty;
@@ -134,13 +136,15 @@ class _ChatScreenState extends State<ChatScreen> {
         ? AssetPaths.getCimoByEmotion(emotionKey)
         : AssetPaths.cimoJoy;
 
+    final cimoCircleSize = r.img(140);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(r.w(20)),
       child: Column(
         children: [
           Container(
-            width: 140,
-            height: 140,
+            width: cimoCircleSize,
+            height: cimoCircleSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -157,17 +161,17 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(r.w(10)),
               child: Image.asset(cimoImage, fit: BoxFit.contain),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
           RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: AppFonts.nunito,
-                fontSize: 16,
+                fontSize: r.sp(16),
                 color: AppColors.textPrimary,
               ),
               children: hasEmotion

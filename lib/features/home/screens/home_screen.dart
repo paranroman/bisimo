@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/navigation/app_drawer.dart';
 import '../../auth/services/profile_service.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../widgets/typing_text_bubble.dart';
 import '../widgets/emotion_button.dart';
 
@@ -83,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned.fill(
             child: Image.asset(
               AssetPaths.homeBackground,
-              fit: BoxFit.fill,
+              fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(color: Colors.white);
               },
@@ -94,106 +96,135 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final r = ResponsiveHelper.of(context);
                 final screenWidth = constraints.maxWidth;
                 final screenHeight = constraints.maxHeight;
 
-                // Responsive values based on screen size
-                final cimoSize = screenWidth * 0.55; // 55% of screen width (bigger)
-                final cimoLeft = screenWidth * -0.03; // -3% from left
-                final cimoBottom = screenHeight * -0.15; // -15% from bottom of section
-                final bubbleLeft = screenWidth * 0.22; // 22% from left (closer to Cimo)
-                final bubbleTop = screenHeight * 0.02; // 2% from top
-                final sectionHeight = screenHeight * 0.38; // 38% of screen height
+                // Constrain content width on wide screens
+                final contentWidth = r.isMobile
+                    ? screenWidth
+                    : min(screenWidth * 0.7, 500.0);
 
-                return Column(
-                  children: [
-                    SizedBox(height: screenHeight * 0.02),
+                // Responsive Cimo size — cap on wider screens
+                final cimoSize = r.isMobile
+                    ? screenWidth * 0.55
+                    : min(contentWidth * 0.55, 260.0);
+                final cimoLeft = -cimoSize * 0.05;
+                final bubbleLeft = contentWidth * 0.22;
 
-                    // Cimo and Chat Bubble Section - Responsive positioning
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                      child: SizedBox(
-                        height: sectionHeight,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            // Cimo Image - positioned bottom-left
-                            Positioned(
-                              left: cimoLeft,
-                              bottom: cimoBottom,
-                              child: SizedBox(
-                                width: cimoSize,
-                                height: cimoSize,
-                                child: Image.asset(
-                                  AssetPaths.cimoJoy,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryLight.withValues(alpha: 0.3),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.emoji_emotions,
-                                        size: 80,
-                                        color: AppColors.primary,
-                                      ),
-                                    );
-                                  },
+                // Section height with safety margin for bottom content
+                final bottomContentMin =
+                    r.h(75) + r.h(16) + 24 + screenHeight * 0.025;
+                final sectionHeight = min(
+                  screenHeight * 0.38,
+                  screenHeight - bottomContentMin - screenHeight * 0.04,
+                );
+                final cimoBottom = -sectionHeight * 0.39;
+
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: contentWidth),
+                    child: Column(
+                      children: [
+                        SizedBox(height: screenHeight * 0.02),
+
+                        // Cimo and Chat Bubble Section
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: contentWidth * 0.04,
+                          ),
+                          child: SizedBox(
+                            height: sectionHeight,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Cimo Image — positioned bottom-left
+                                Positioned(
+                                  left: cimoLeft,
+                                  bottom: cimoBottom,
+                                  child: SizedBox(
+                                    width: cimoSize,
+                                    height: cimoSize,
+                                    child: Image.asset(
+                                      AssetPaths.cimoJoy,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryLight
+                                                .withValues(alpha: 0.3),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.emoji_emotions,
+                                            size: r.img(80),
+                                            color: AppColors.primary,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
                                 ),
-                              ),
+
+                                // Chat Bubble — positioned top-right of Cimo
+                                Positioned(
+                                  left: bubbleLeft,
+                                  top: sectionHeight * 0.05,
+                                  right: r.w(8),
+                                  child: TypingTextBubble(
+                                    userName: _namaPanggilan.isNotEmpty
+                                        ? _namaPanggilan
+                                        : 'Teman',
+                                    greetingPrefix: 'Halo, ',
+                                    greetingSuffix: '!\n',
+                                    bodyText:
+                                        'Cimo ingin mendengarmu di sini,\n',
+                                    questionText: 'bagaimana perasaanmu?',
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+                        ),
 
-                            // Chat Bubble - positioned top-right of Cimo
-                            Positioned(
-                              left: bubbleLeft,
-                              top: bubbleTop,
-                              right: screenWidth * 0.02,
-                              child: TypingTextBubble(
-                                userName: _namaPanggilan.isNotEmpty ? _namaPanggilan : 'Teman',
-                                greetingPrefix: 'Halo, ',
-                                greetingSuffix: '!\n',
-                                bodyText: 'Cimo ingin mendengarmu di sini,\n',
-                                questionText: 'bagaimana perasaanmu?',
-                              ),
+                        const Spacer(),
+
+                        // Emotion Button
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: r.w(AppSizes.paddingL),
+                          ),
+                          child: EmotionButton(
+                            onPressed: () {
+                              context.push(AppRoutes.camera);
+                            },
+                          ),
+                        ),
+                        SizedBox(height: r.h(12)),
+
+                        // Text Story Link
+                        GestureDetector(
+                          onTap: () {
+                            context.push(AppRoutes.chat);
+                          },
+                          child: Text(
+                            'Bercerita dengan teks.',
+                            style: TextStyle(
+                              fontFamily: AppFonts.nunito,
+                              fontSize: r.sp(14),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                              decoration: TextDecoration.underline,
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+
+                        SizedBox(height: screenHeight * 0.025),
+                      ],
                     ),
-
-                    const Spacer(),
-
-                    // Emotion Button
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
-                      child: EmotionButton(
-                        onPressed: () {
-                          context.push(AppRoutes.camera);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.spaceM),
-
-                    // Text Story Link
-                    GestureDetector(
-                      onTap: () {
-                        context.push(AppRoutes.chat);
-                      },
-                      child: const Text(
-                        'Bercerita dengan teks.',
-                        style: TextStyle(
-                          fontFamily: AppFonts.nunito,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-
-                    const Spacer(flex: 1),
-                  ],
+                  ),
                 );
               },
             ),

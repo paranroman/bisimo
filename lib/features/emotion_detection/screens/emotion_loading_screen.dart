@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../providers/api_provider.dart';
 import '../services/emotion_api_service.dart';
 import '../screens/detection_error_screen.dart';
@@ -157,7 +157,10 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final r = ResponsiveHelper.of(context);
+    // Use responsive img() so the animation doesn't get oversized on tablets
+    final waveSize = r.img(375 * 0.7); // equivalent to screenWidth*0.7 on base design
+    final cimoSize = r.img(375 * 0.45);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -166,8 +169,8 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: screenWidth * 0.7,
-              height: screenWidth * 0.7,
+              width: waveSize,
+              height: waveSize,
               child: AnimatedBuilder(
                 animation: _waveController,
                 builder: (context, child) {
@@ -175,8 +178,8 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
                     painter: _SonarWavePainter(progress: _waveController.value),
                     child: Center(
                       child: SizedBox(
-                        width: screenWidth * 0.45,
-                        height: screenWidth * 0.45,
+                        width: cimoSize,
+                        height: cimoSize,
                         child: Image.asset(AssetPaths.cimoJoy, fit: BoxFit.contain),
                       ),
                     ),
@@ -184,26 +187,26 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
                 },
               ),
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: r.h(40)),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Mendeteksi perasaanmu',
                   style: TextStyle(
                     fontFamily: AppFonts.lexend,
-                    fontSize: 20,
+                    fontSize: r.sp(20),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
                 ),
                 SizedBox(
-                  width: 30,
+                  width: r.w(30),
                   child: Text(
                     _getDotsText(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppFonts.lexend,
-                      fontSize: 20,
+                      fontSize: r.sp(20),
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
@@ -211,12 +214,12 @@ class _EmotionLoadingScreenState extends State<EmotionLoadingScreen> with Ticker
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: r.h(12)),
             Text(
               'Waktu tersisa: ${_secondsRemaining}s',
               style: TextStyle(
                 fontFamily: AppFonts.lexend,
-                fontSize: 13,
+                fontSize: r.sp(13),
                 fontWeight: FontWeight.w400,
                 color: _secondsRemaining <= 10 ? Colors.red.shade400 : Colors.grey.shade500,
               ),
