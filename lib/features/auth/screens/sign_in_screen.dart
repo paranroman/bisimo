@@ -11,6 +11,7 @@ import '../../../core/constants/asset_paths.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
+import '../../../shared/widgets/icons/google_icon.dart';
 import 'qr_scanner_screen.dart';
 
 /// Sign In Screen - User login page with tabs for Guru/Wali and Murid
@@ -31,6 +32,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
   late TabController _tabController;
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   int _currentTabIndex = 0;
 
   @override
@@ -108,6 +110,35 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       }
     } else {
       _showSnackBar(authProvider.errorMessage ?? 'Token tidak valid');
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.signInWithGoogle();
+
+      if (!mounted) return;
+
+      if (success) {
+        if (authProvider.needsProfileData) {
+          context.go(AppRoutes.profileData);
+        } else {
+          context.go(AppRoutes.waliDashboard);
+        }
+      } else {
+        _showSnackBar(authProvider.errorMessage ?? 'Gagal mendaftar dengan Google');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Terjadi kesalahan. Silakan coba lagi.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+      }
     }
   }
 
@@ -389,6 +420,18 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
               ),
             ),
           ),
+        ),
+        const SizedBox(height: AppSizes.spaceM),
+
+        Center(
+          child: _isGoogleLoading
+              ? const CircularProgressIndicator(color: AppColors.primary)
+              : PrimaryButton.google(
+                  onPressed: _handleGoogleSignUp,
+                  prefixIcon: const GoogleIcon(size: 20),
+                  width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
+                  height: 52,
+                ),
         ),
         const SizedBox(height: AppSizes.spaceXL),
       ],
@@ -735,4 +778,3 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     return TextEditingValue(text: newValue.text.toUpperCase(), selection: newValue.selection);
   }
 }
-

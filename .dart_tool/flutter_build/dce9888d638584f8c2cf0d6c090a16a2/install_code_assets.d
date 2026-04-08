@@ -1,0 +1,1 @@
+ C:\\Codingan\\Flutter\\Innovillage\\Bisimo\\bisimo\\.dart_tool\\flutter_build\\dce9888d638584f8c2cf0d6c090a16a2\\native_assets.json: 

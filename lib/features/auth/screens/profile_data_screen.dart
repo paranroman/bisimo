@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
@@ -12,7 +11,7 @@ import '../../../data/models/user_profile.dart';
 import '../../../providers/auth_provider.dart';
 import '../services/profile_service.dart';
 
-/// Profile Data Screen - User fills personal information after registration
+/// Profile Data Screen - Wali fills basic profile data after registration
 class ProfileDataScreen extends StatefulWidget {
   const ProfileDataScreen({super.key});
 
@@ -22,110 +21,49 @@ class ProfileDataScreen extends StatefulWidget {
 
 class _ProfileDataScreenState extends State<ProfileDataScreen> {
   final _namaController = TextEditingController();
-  final _namaPanggilanController = TextEditingController();
-  final _namaOrangTuaController = TextEditingController();
-  final _kontakOrangTuaController = TextEditingController();
   final _profileService = ProfileService();
 
-  DateTime? _selectedDate;
   String? _selectedGender;
-  String? _selectedEducation;
   bool _isLoading = false;
 
   final List<String> _genderOptions = ['Laki-laki', 'Perempuan'];
-  final List<String> _educationOptions = ['SD', 'SMP', 'SMA'];
 
   @override
   void dispose() {
     _namaController.dispose();
-    _namaPanggilanController.dispose();
-    _namaOrangTuaController.dispose();
-    _kontakOrangTuaController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      locale: const Locale('id', 'ID'),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF41B37E),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: const Color(0xFF41B37E)),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
   void _handleSubmit() async {
-    // Validate form
     if (_namaController.text.trim().isEmpty) {
       _showSnackBar('Nama tidak boleh kosong');
-      return;
-    }
-    if (_namaPanggilanController.text.trim().isEmpty) {
-      _showSnackBar('Nama panggilan tidak boleh kosong');
-      return;
-    }
-    if (_selectedDate == null) {
-      _showSnackBar('Tanggal lahir harus diisi');
       return;
     }
     if (_selectedGender == null) {
       _showSnackBar('Jenis kelamin harus dipilih');
       return;
     }
-    if (_selectedEducation == null) {
-      _showSnackBar('Tingkat pendidikan harus dipilih');
-      return;
-    }
-    if (_namaOrangTuaController.text.trim().isEmpty) {
-      _showSnackBar('Nama orang tua/wali tidak boleh kosong');
-      return;
-    }
-    if (_kontakOrangTuaController.text.trim().isEmpty) {
-      _showSnackBar('Kontak orang tua/wali tidak boleh kosong');
-      return;
-    }
 
     setState(() => _isLoading = true);
 
-    // Create profile
+    final nama = _namaController.text.trim();
+
+    // Keep legacy required fields filled for backward compatibility.
     final profile = UserProfile(
-      nama: _namaController.text.trim(),
-      namaPanggilan: _namaPanggilanController.text.trim(),
-      tanggalLahir: _selectedDate!,
+      nama: nama,
+      namaPanggilan: nama,
+      tanggalLahir: DateTime(2000, 1, 1),
       jenisKelamin: _selectedGender!,
-      tingkatPendidikan: _selectedEducation!,
-      namaOrangTua: _namaOrangTuaController.text.trim(),
-      kontakOrangTua: _kontakOrangTuaController.text.trim(),
+      tingkatPendidikan: '',
+      namaOrangTua: '',
+      kontakOrangTua: '',
     );
 
-    // Save profile locally
     await _profileService.saveProfile(profile);
 
     setState(() => _isLoading = false);
 
     if (mounted) {
-      // Notify AuthProvider that profile data is complete
       context.read<AuthProvider>().markProfileDataCompleted();
       _showSnackBar('Data berhasil disimpan!');
       context.go(AppRoutes.waliDashboard);
@@ -180,7 +118,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
 
                       // Title
                       const Text(
-                        'Lengkapi Data Diri',
+                        'Lengkapi Data Wali',
                         style: TextStyle(
                           fontFamily: AppFonts.nunito,
                           fontSize: 24,
@@ -191,7 +129,7 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Data ini akan digunakan untuk profil anak',
+                        'Data ini akan digunakan untuk profil wali di dashboard',
                         style: TextStyle(
                           fontFamily: AppFonts.nunito,
                           fontSize: 14,
@@ -202,31 +140,14 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                       ),
                       const SizedBox(height: AppSizes.spaceXL),
 
-                      // Nama Field
-                      _buildLabel('Nama Anak'),
+                      _buildLabel('Nama'),
                       const SizedBox(height: AppSizes.spaceS),
                       _buildTextField(
                         controller: _namaController,
-                        hintText: 'Masukkan nama lengkap...',
+                        hintText: 'Masukkan nama Anda...',
                       ),
                       const SizedBox(height: AppSizes.spaceM),
 
-                      // Nama Panggilan Field
-                      _buildLabel('Nama Panggilan'),
-                      const SizedBox(height: AppSizes.spaceS),
-                      _buildTextField(
-                        controller: _namaPanggilanController,
-                        hintText: 'Nama yang akan disapa Cimo...',
-                      ),
-                      const SizedBox(height: AppSizes.spaceM),
-
-                      // Tanggal Lahir Field
-                      _buildLabel('Tanggal Lahir'),
-                      const SizedBox(height: AppSizes.spaceS),
-                      _buildDatePicker(),
-                      const SizedBox(height: AppSizes.spaceM),
-
-                      // Jenis Kelamin Field
                       _buildLabel('Jenis Kelamin'),
                       const SizedBox(height: AppSizes.spaceS),
                       _buildDropdown(
@@ -237,62 +158,8 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
                           setState(() => _selectedGender = value);
                         },
                       ),
-                      const SizedBox(height: AppSizes.spaceM),
-
-                      // Tingkat Pendidikan Field
-                      _buildLabel('Tingkat Pendidikan'),
-                      const SizedBox(height: AppSizes.spaceS),
-                      _buildDropdown(
-                        value: _selectedEducation,
-                        items: _educationOptions,
-                        hint: 'Pilih tingkat pendidikan',
-                        onChanged: (value) {
-                          setState(() => _selectedEducation = value);
-                        },
-                      ),
-                      const SizedBox(height: AppSizes.spaceL),
-
-                      // Divider with title
-                      Row(
-                        children: [
-                          const Expanded(child: Divider(color: AppColors.textHint)),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              'Data Orang Tua/Wali',
-                              style: TextStyle(
-                                fontFamily: AppFonts.nunito,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textHint,
-                              ),
-                            ),
-                          ),
-                          const Expanded(child: Divider(color: AppColors.textHint)),
-                        ],
-                      ),
-                      const SizedBox(height: AppSizes.spaceM),
-
-                      // Nama Orang Tua/Wali Field
-                      _buildLabel('Nama Orang Tua/Wali'),
-                      const SizedBox(height: AppSizes.spaceS),
-                      _buildTextField(
-                        controller: _namaOrangTuaController,
-                        hintText: 'Masukkan nama orang tua/wali...',
-                      ),
-                      const SizedBox(height: AppSizes.spaceM),
-
-                      // Kontak Orang Tua/Wali Field
-                      _buildLabel('Kontak Orang Tua/Wali'),
-                      const SizedBox(height: AppSizes.spaceS),
-                      _buildTextField(
-                        controller: _kontakOrangTuaController,
-                        hintText: 'Masukkan nomor telepon...',
-                        keyboardType: TextInputType.phone,
-                      ),
                       const SizedBox(height: AppSizes.spaceXL),
 
-                      // Submit Button
                       Center(
                         child: _isLoading
                             ? const CircularProgressIndicator(color: Color(0xFF41B37E))
@@ -313,7 +180,6 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
               ],
             ),
           ),
-          // Back Button
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 10,
@@ -391,40 +257,6 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     );
   }
 
-  Widget _buildDatePicker() {
-    return GestureDetector(
-      onTap: _selectDate,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.paddingM,
-          vertical: AppSizes.paddingM,
-        ),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300, width: 1),
-          borderRadius: BorderRadius.circular(AppSizes.radiusS),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                _selectedDate != null
-                    ? DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate!)
-                    : 'Pilih tanggal lahir...',
-                style: TextStyle(
-                  fontFamily: AppFonts.nunito,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: _selectedDate != null ? AppColors.textPrimary : AppColors.textHint,
-                ),
-              ),
-            ),
-            Icon(Icons.calendar_today, color: AppColors.textHint, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildDropdown({
     required String? value,
     required List<String> items,
@@ -471,4 +303,3 @@ class _ProfileDataScreenState extends State<ProfileDataScreen> {
     );
   }
 }
-
