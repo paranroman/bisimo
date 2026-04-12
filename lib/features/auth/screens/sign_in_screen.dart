@@ -396,6 +396,39 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
         ),
         const SizedBox(height: AppSizes.spaceL),
 
+        // OR Divider
+          Row(
+            children: [
+              const Expanded(child: Divider(color: AppColors.textHint)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingM),
+                child: Text(
+                  'atau',
+                  style: TextStyle(
+                    fontFamily: AppFonts.nunito,
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              const Expanded(child: Divider(color: AppColors.textHint)),
+            ],
+          ),
+          const SizedBox(height: AppSizes.spaceL),
+
+        // Google Sign Up Button
+        Center(
+          child: _isGoogleLoading
+              ? const CircularProgressIndicator(color: AppColors.primary)
+              : PrimaryButton.google(
+                  onPressed: _handleGoogleSignUp,
+                  prefixIcon: const GoogleIcon(size: 20),
+                  width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
+                  height: 52,
+                ),
+        ),
+        const SizedBox(height: AppSizes.spaceL),
+
         // Sign Up Link
         Center(
           child: GestureDetector(
@@ -421,19 +454,8 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
             ),
           ),
         ),
-        const SizedBox(height: AppSizes.spaceM),
-
-        Center(
-          child: _isGoogleLoading
-              ? const CircularProgressIndicator(color: AppColors.primary)
-              : PrimaryButton.google(
-                  onPressed: _handleGoogleSignUp,
-                  prefixIcon: const GoogleIcon(size: 20),
-                  width: MediaQuery.of(context).size.width - (AppSizes.paddingL * 2),
-                  height: 52,
-                ),
-        ),
         const SizedBox(height: AppSizes.spaceXL),
+
       ],
     );
   }
