@@ -51,7 +51,10 @@ android {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String?
             keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = file(keystoreProperties["storeFile"] as String? ?: "")
+            val storeFilePathStr = keystoreProperties["storeFile"] as String?
+            if (storeFilePathStr != null && storeFilePathStr.isNotEmpty()) {
+                storeFile = file(storeFilePathStr)
+            }
             storePassword = keystoreProperties["storePassword"] as String?
         }
     }
